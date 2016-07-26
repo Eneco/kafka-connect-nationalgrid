@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://www.NationalGrid.com/MIPI/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" targetNamespace="http://www.NationalGrid.com/MIPI/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://www.NationalGrid.com/MIPI/">
+      <s:element name="GetPublicationDataWM">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="reqObject" type="tns:CLSRequestObject" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="CLSRequestObject">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="LatestFlag" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="ApplicableForFlag" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="ToDate" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="FromDate" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="DateType" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="PublicationObjectNameList" type="tns:ArrayOfString" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfString">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="GetPublicationDataWMResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetPublicationDataWMResult" type="tns:ArrayOfCLSMIPIPublicationObjectBE" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfCLSMIPIPublicationObjectBE">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="CLSMIPIPublicationObjectBE" nillable="true" type="tns:CLSMIPIPublicationObjectBE" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="CLSMIPIPublicationObjectBE">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="PublicationObjectName" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="PublicationObjectData" type="tns:ArrayOfCLSPublicationObjectDataBE" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfCLSPublicationObjectDataBE">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="CLSPublicationObjectDataBE" nillable="true" type="tns:CLSPublicationObjectDataBE" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="CLSPublicationObjectDataBE">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="ApplicableAt" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="ApplicableFor" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="Value" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="GeneratedTimeStamp" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="QualityIndicator" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Substituted" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="CreatedDate" type="s:dateTime" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetPublicationDataWMSoapIn">
+    <wsdl:part name="parameters" element="tns:GetPublicationDataWM" />
+  </wsdl:message>
+  <wsdl:message name="GetPublicationDataWMSoapOut">
+    <wsdl:part name="parameters" element="tns:GetPublicationDataWMResponse" />
+  </wsdl:message>
+  <wsdl:portType name="PublicWebServiceSoap">
+    <wsdl:operation name="GetPublicationDataWM">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">This webmethod provides the publication data</wsdl:documentation>
+      <wsdl:input message="tns:GetPublicationDataWMSoapIn" />
+      <wsdl:output message="tns:GetPublicationDataWMSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="PublicWebServiceSoap" type="tns:PublicWebServiceSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetPublicationDataWM">
+      <soap:operation soapAction="http://www.NationalGrid.com/MIPI/GetPublicationDataWM" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="PublicWebServiceSoap12" type="tns:PublicWebServiceSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetPublicationDataWM">
+      <soap12:operation soapAction="http://www.NationalGrid.com/MIPI/GetPublicationDataWM" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="PublicWebService">
+    <wsdl:port name="PublicWebServiceSoap" binding="tns:PublicWebServiceSoap">
+      <soap:address location="http://marketinformation.natgrid.co.uk/MIPIws-public/public/publicwebservice.asmx" />
+    </wsdl:port>
+    <wsdl:port name="PublicWebServiceSoap12" binding="tns:PublicWebServiceSoap12">
+      <soap12:address location="http://marketinformation.natgrid.co.uk/MIPIws-public/public/publicwebservice.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
