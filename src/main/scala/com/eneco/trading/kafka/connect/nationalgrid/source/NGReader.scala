@@ -4,7 +4,8 @@ import java.text.SimpleDateFormat
 import java.time.{Duration, Instant}
 import java.util.{Calendar, GregorianCalendar}
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
-import com.eneco.trading.kafka.connect.nationalgrid.config.{RequestType, SOAPSourceSettings}
+
+import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceSettings, NGSourceSettings$, RequestType}
 import com.eneco.trading.kafka.connect.nationalgrid.domain.{IFDRMessage, MIPIMessage}
 import com.typesafe.scalalogging.StrictLogging
 import nationalgrid.{ArrayOfCLSMIPIPublicationObjectBE, ArrayOfString, CLSRequestObject, GetPublicationDataWMResponse}
@@ -23,11 +24,11 @@ import scala.collection.mutable
 
 case class PullMap(dataItem: String, pubTimeHour: Int, pubTimeMinute: Int, frequency: Int)
 
-object SOAPReader {
-  def apply(settings: SOAPSourceSettings): SOAPReader = new SOAPReader(settings)
+object NGReader {
+  def apply(settings: NGSourceSettings): NGReader = new NGReader(settings)
 }
 
-class SOAPReader(settings: SOAPSourceSettings) extends MIPIMessage with IFDRMessage with StrictLogging {
+class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage with StrictLogging {
   logger.info("Initialising SOAP Reader")
 
   private val defaultTimestamp = "1900-01-01 00:00:00.0000000Z"

@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat
 import java.util
 import java.util.Date
 
-import com.eneco.trading.kafka.connect.nationalgrid.config.{RequestType, SOAPSourceConfig}
+import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceConfig$, RequestType}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
@@ -47,10 +47,11 @@ trait TestConfig extends StrictLogging with MockitoSugar {
     ASSIGNMENT
   }
 
-  def getProps() = Map(SOAPSourceConfig.IFR_TOPIC->IFR_TOPIC,
-    SOAPSourceConfig.MIPI_TOPIC->MIPI_TOPIC,
-    SOAPSourceConfig.IFR_REQUESTS->IFR_REQUEST,
-    SOAPSourceConfig.MIPI_REQUESTS->MIPI_REQUEST).asJava
+  def getProps() = Map(
+    NGSourceConfig.IFR_TOPIC->IFR_TOPIC,
+    NGSourceConfig.MIPI_TOPIC->MIPI_TOPIC,
+    NGSourceConfig.IFR_REQUESTS->IFR_REQUEST,
+    NGSourceConfig.MIPI_REQUESTS->MIPI_REQUEST).asJava
 
   //build a test record schema
   def createSchema: Schema = {

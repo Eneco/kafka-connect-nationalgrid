@@ -2,10 +2,11 @@ package com.eneco.trading.kafka.connect.nationalgrid.source
 
 import java.util
 
-import com.eneco.trading.kafka.connect.nationalgrid.config.SOAPSourceConfig
+import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceConfig$}
 import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.source.SourceConnector
+
 import scala.collection.JavaConversions._
 
 /**
@@ -14,7 +15,7 @@ import scala.collection.JavaConversions._
   */
 class NationalGridSourceConnector extends SourceConnector {
   private var configProps: util.Map[String, String] = _
-  private val configDef = SOAPSourceConfig.config
+  private val configDef = NGSourceConfig.config
 
   override def start(props: util.Map[String, String]): Unit = {
     configProps = props
