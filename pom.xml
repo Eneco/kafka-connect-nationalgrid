@@ -121,6 +121,11 @@
             <version> 1.8.8</version>
         </dependency>
         <dependency>
+            <groupId>org.scalaj</groupId>
+            <artifactId>scalaj-time_2.10.2</artifactId>
+            <version>0.7</version>
+        </dependency>
+        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.major.version}</artifactId>
             <version>${scalatest.version}</version>
