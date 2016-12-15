@@ -26,7 +26,10 @@ trait TestConfig extends StrictLogging with MockitoSugar {
   val TABLE2 = "table2"
   val TABLE3 = TOPIC2
 
-  val IMPORT_QUERY_ROUTE = s"INSERT INTO $TOPIC1 SELECT * FROM ${RequestType.IFR.toString}"
+  val IFR_TOPIC="ifr"
+  val MIPI_TOPIC="mipi"
+  val IFR_REQUEST="A"
+  val MIPI_REQUEST="B"
 
   protected val PARTITION: Int = 12
   protected val PARTITION2: Int = 13
@@ -44,7 +47,10 @@ trait TestConfig extends StrictLogging with MockitoSugar {
     ASSIGNMENT
   }
 
-  def getProps() = Map(SOAPSourceConfig.IMPORT_QUERY_ROUTE->IMPORT_QUERY_ROUTE).asJava
+  def getProps() = Map(SOAPSourceConfig.IFR_TOPIC->IFR_TOPIC,
+    SOAPSourceConfig.MIPI_TOPIC->MIPI_TOPIC,
+    SOAPSourceConfig.IFR_REQUESTS->IFR_REQUEST,
+    SOAPSourceConfig.MIPI_REQUESTS->MIPI_REQUEST).asJava
 
   //build a test record schema
   def createSchema: Schema = {

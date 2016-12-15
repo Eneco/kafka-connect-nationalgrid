@@ -17,6 +17,5 @@ class TestSOAPReader extends WordSpec with Matchers with BeforeAndAfter with Moc
     val config = new SOAPSourceConfig(props)
     val settings = SOAPSourceSettings(config)
     val reader = new SOAPReader(settings)
-    reader.send()
   }
 }

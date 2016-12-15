@@ -4,8 +4,6 @@ import java.text.SimpleDateFormat
 import java.time.{Duration, Instant}
 import java.util.{Calendar, GregorianCalendar}
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
-
-import com.datamountaineer.streamreactor.connect.schemas.ConverterUtil
 import com.eneco.trading.kafka.connect.nationalgrid.config.{RequestType, SOAPSourceSettings}
 import com.eneco.trading.kafka.connect.nationalgrid.domain.{IFDRMessage, MIPIMessage}
 import com.typesafe.scalalogging.StrictLogging
@@ -25,8 +23,11 @@ import scala.collection.mutable
 
 case class PullMap(dataItem: String, pubTimeHour: Int, pubTimeMinute: Int, frequency: Int)
 
-class SOAPReader(settings: SOAPSourceSettings) extends ConverterUtil //with IFDRMessage
-  with MIPIMessage with IFDRMessage with StrictLogging {
+object SOAPReader {
+  def apply(settings: SOAPSourceSettings): SOAPReader = new SOAPReader(settings)
+}
+
+class SOAPReader(settings: SOAPSourceSettings) extends MIPIMessage with IFDRMessage with StrictLogging {
   logger.info("Initialising SOAP Reader")
 
   private val defaultTimestamp = "1900-01-01 00:00:00.0000000Z"
@@ -42,8 +43,8 @@ class SOAPReader(settings: SOAPSourceSettings) extends ConverterUtil //with IFDR
     scalaxb.SoapClientsAsync with
     DispatchHttpClientsAsyncNG {}).service
 
-  private val ifrTopic = settings.route.get(RequestType.IFR).get
-  private val mipiTopic = settings.route.get(RequestType.MIPI).getOrElse("national-grid-mipi")
+  private val ifrTopic = settings.ifrTopic
+  private val mipiTopic = settings.mipiTopic
 
   val dataItem = "NTS Physical Flows, Bacton, Interconnector"
   val mipiSchedule = Map(dataItem -> PullMap(dataItem, 0 , 8, 60))
@@ -51,67 +52,11 @@ class SOAPReader(settings: SOAPSourceSettings) extends ConverterUtil //with IFDR
 
   def convertDate(cal: XMLGregorianCalendar) : Instant = cal.toGregorianCalendar().getTime().toInstant
 
-  def send(): Seq[SourceRecord] = {
-    //new publication after now
-    val ifrRecords = if (Instant.now.isAfter(ifrPubTracker.plus(refreshRate))) {
-      val lastPubTime =  Await.result(ifService.getLatestPublicationTime(), 30.seconds)
-      if (convertDate(lastPubTime).isAfter(ifrPubTracker)) {
-       // val records = processIFD()
-        ifrPubTracker = Instant.now()
-        //records
-        Seq.empty[SourceRecord]
-      } else {
-        Seq.empty[SourceRecord]
-      }
-    } else {
-      Seq.empty[SourceRecord]
-    }
-    ifrRecords ++ mipiSchedule.flatMap({ case (k, v) => checkMIPI(k) }).toSeq
-  }
-
   /**
-    * Check if MIPI data Item should be requested
+    * Process and new NG feeds that are available
     *
-    * Check if now is greater than publication time
-    * and lastPoll plus frequency
-    *
-    * @param dataItem The dataItem to request
     * */
-  def checkMIPI(dataItem: String): Seq[SourceRecord] = {
-    val now = new GregorianCalendar()
-    val lastPoll = offsets.get(dataItem).get
-    val freq = mipiSchedule.get(dataItem).get
-    val lastPollPlusFreq = new GregorianCalendar()
-    lastPollPlusFreq.setTime(lastPoll)
-    lastPollPlusFreq.add(Calendar.MINUTE, freq.frequency)
-
-    val publicationStart = new GregorianCalendar()
-    publicationStart.set(Calendar.HOUR, freq.pubTimeHour)
-    publicationStart.set(Calendar.MINUTE, freq.pubTimeMinute)
-    publicationStart.set(Calendar.SECOND, 0)
-    publicationStart.set(Calendar.MILLISECOND, 0)
-
-    if (now.after(publicationStart)) {
-      if (now.after(lastPollPlusFreq)) {
-        val records = processMIPI(buildCLSRequest(now, dataItem))
-        offsets.update(dataItem, now.getTime)
-        records
-      } else if (lastPoll.equals(defaultTimestamp)) {
-        //startup
-       now.add(Calendar.DAY_OF_MONTH, -6)
-        (1 to 5).map(d => {
-          now.add(Calendar.DAY_OF_MONTH, 1)
-          processMIPI(buildCLSRequest(now, dataItem))
-        }).flatten
-      } else {
-        logger.info(s"Waiting for publication start time for $dataItem at ${publicationStart.toString}")
-        Seq.empty[SourceRecord]
-      }
-    } else {
-      logger.info(s"Waiting for publication start time for $dataItem at ${publicationStart.toString}")
-      Seq.empty[SourceRecord]
-    }
-  }
+  def process() : List[SourceRecord] = ???
 
   /**
     * Build a CLSRequest for MIPI
