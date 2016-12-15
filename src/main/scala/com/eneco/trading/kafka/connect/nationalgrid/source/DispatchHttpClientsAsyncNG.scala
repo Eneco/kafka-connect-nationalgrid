@@ -19,8 +19,7 @@ trait DispatchHttpClientsAsyncNG extends HttpClientsAsync {
     import dispatch._, Defaults._
 
     // Keep it lazy. See https://github.com/eed3si9n/scalaxb/pull/279
-    lazy val http = Http.configure(_.setRequestTimeoutInMs(requestTimeout.toMillis.toInt)
-      .setConnectionTimeoutInMs(connectionTimeout.toMillis.toInt).setCompressionEnabled(true)) //set compression
+    lazy val http = Http.configure(_.setCompressionEnabled(true)) //set compression
 
     def request(in: String, address: java.net.URI, headers: Map[String, String]): concurrent.Future[String] = {
       val req = url(address.toString).setBodyEncoding("UTF-8") <:< headers << in

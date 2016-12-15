@@ -11,11 +11,12 @@ import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
   */
 class TestNGReader extends WordSpec with Matchers with BeforeAndAfter with MockitoSugar with TestConfig{
 
-  "should read from SOAP API" in {
+  "should read from IFD message" in {
     //val taskContext = getSourceTaskContextDefault()
     val props = getProps
     val config = new NGSourceConfig(props)
     val settings = NGSourceSettings(config)
     val reader = new NGReader(settings)
+    reader.processIFD()
   }
 }

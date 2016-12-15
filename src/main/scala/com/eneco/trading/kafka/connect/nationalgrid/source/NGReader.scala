@@ -29,7 +29,7 @@ object NGReader {
 class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage with StrictLogging {
   logger.info("Initialising SOAP Reader")
 
-  private val defaultTimestamp = "1900-01-01 00:00:00.0000000Z"
+  private val defaultTimestamp = "1900-01-01 00:00:00.000Z"
   private val dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS'Z'")
   private val offsetField = "publishedTime"
 
