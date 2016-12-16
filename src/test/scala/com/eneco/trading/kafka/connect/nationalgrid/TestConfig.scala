@@ -47,7 +47,7 @@ trait TestConfig extends StrictLogging with MockitoSugar {
     ASSIGNMENT
   }
 
-  def getProps() = Map(
+  def getProps(): util.Map[String, String] = Map(
     NGSourceConfig.IFR_TOPIC->IFR_TOPIC,
     NGSourceConfig.MIPI_TOPIC->MIPI_TOPIC,
     NGSourceConfig.IFR_REQUESTS->IFR_REQUEST,

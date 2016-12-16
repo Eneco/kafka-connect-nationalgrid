@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
 
 trait IFDRMessage extends StrictLogging
 {
-  val EDPEnergyDataBESchema = SchemaBuilder.struct().name("EDPEnergyDataBE")
+  val EDPEnergyDataBESchema: Schema = SchemaBuilder.struct().name("EDPEnergyDataBE")
     .field("applicableAt", Schema.STRING_SCHEMA)
     .field("flowRate", Schema.FLOAT64_SCHEMA)
     .field("qualityIndicator", Schema.STRING_SCHEMA)
@@ -20,14 +20,14 @@ trait IFDRMessage extends StrictLogging
     .field("scheduleTime", Schema.STRING_SCHEMA)
     .build()
 
-  val EDPObjectBESchema = SchemaBuilder.struct().name("EDPObjectBE")
+  val EDPObjectBESchema: Schema = SchemaBuilder.struct().name("EDPObjectBE")
     .field("eDPObjectName", Schema.STRING_SCHEMA)
     .field("eDPObjectId", Schema.STRING_SCHEMA)
     .field("eDPObjectType", Schema.STRING_SCHEMA)
     .field("energyDataList", SchemaBuilder.array(EDPEnergyDataBESchema))
     .build()
 
-  val EDPEnergyGraphTableBESchema = SchemaBuilder.struct().name("EDPEnergyGraphTableBE")
+  val EDPEnergyGraphTableBESchema: Schema = SchemaBuilder.struct().name("EDPEnergyGraphTableBE")
     .field("eDPEnergyGraphTableName", Schema.STRING_SCHEMA)
     .field("itemPosition", Schema.INT32_SCHEMA)
     .field("description", Schema.STRING_SCHEMA)
@@ -35,13 +35,13 @@ trait IFDRMessage extends StrictLogging
     .build()
 
 
-  val EDPReportPageSchema = SchemaBuilder.struct().name("EDPReportPage")
+  val EDPReportPageSchema: Schema = SchemaBuilder.struct().name("EDPReportPage")
     .field("pageName", Schema.STRING_SCHEMA)
     .field("currentGasDay", Schema.STRING_SCHEMA)
     .field("eDPEnergyGraphTableCollection", SchemaBuilder.array(EDPEnergyGraphTableBESchema))
     .build()
 
-  val EDPReportSchema = SchemaBuilder.struct().name("EDReport")
+  val EDPReportSchema: Schema = SchemaBuilder.struct().name("EDReport")
     .field("reportName", Schema.STRING_SCHEMA)
     .field("publishedTime", Schema.STRING_SCHEMA)
     .field("eDPReportPage", EDPReportPageSchema)

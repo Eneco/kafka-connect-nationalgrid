@@ -1,12 +1,12 @@
 package com.eneco.trading.kafka.connect.nationalgrid.source
 
 import java.util
-import javax.xml.datatype.DatatypeFactory
+import java.util.{Calendar, GregorianCalendar}
 
 import com.eneco.trading.kafka.connect.nationalgrid.TestConfig
 import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceSettings}
 import com.eneco.trading.kafka.connect.nationalgrid.domain.IFDRMessage
-import org.apache.kafka.connect.data.{Field, Schema}
+import org.apache.kafka.connect.data.Field
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
 
@@ -35,9 +35,9 @@ class TestNGReader extends WordSpec with Matchers with BeforeAndAfter with Mocki
     val config = new NGSourceConfig(props)
     val settings = NGSourceSettings(config)
     val reader = new NGReader(settings)
-    val now = DatatypeFactory.newInstance().newXMLGregorianCalendar()
-    now.setDay(2)
-    reader.ifrPubTracker =  Some(now.toGregorianCalendar)
+    val now = new GregorianCalendar()
+    now.add(Calendar.HOUR, 24)
+    reader.ifrPubTracker =  Some(now)
     val records = reader.processIFD()
     records.size shouldBe 0
   }

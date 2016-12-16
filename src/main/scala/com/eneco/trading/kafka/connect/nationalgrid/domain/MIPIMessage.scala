@@ -10,7 +10,7 @@ import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
   * kafka-connect-nationalgrid
   */
 trait MIPIMessage {
-  val CLSPublicationObjectDataBESchema = SchemaBuilder.struct().name("CLSPublicationObjectDataBE").version(1)
+  val CLSPublicationObjectDataBESchema: SchemaBuilder = SchemaBuilder.struct().name("CLSPublicationObjectDataBE").version(1)
     .field("dataItemName", Schema.STRING_SCHEMA)
     .field("applicableAt", Schema.STRING_SCHEMA)
     .field("applicableFor", Schema.STRING_SCHEMA)
@@ -39,11 +39,11 @@ trait MIPIMessage {
 
   def processMIPIReport(r : ArrayOfCLSMIPIPublicationObjectBE): Seq[Struct] = {
     val pubObjectBe = r.CLSMIPIPublicationObjectBE.flatten
-    pubObjectBe.map(o => processCLSPublicationObjectDataBE(o.PublicationObjectName, o.PublicationObjectData)).flatten
+    pubObjectBe.flatMap(o => processCLSPublicationObjectDataBE(o.PublicationObjectName, o.PublicationObjectData))
   }
 
   def processCLSPublicationObjectDataBE(name: Option[String], cLSPublicationObjectDataBE: Option[ArrayOfCLSPublicationObjectDataBE]) : Seq[Struct] = {
-    val x = cLSPublicationObjectDataBE.map(p => (p.CLSPublicationObjectDataBE.flatten)).get
+    val x = cLSPublicationObjectDataBE.map(p => p.CLSPublicationObjectDataBE.flatten).get
     x.map(y => processPubObjectBE(name, y))
   }
 

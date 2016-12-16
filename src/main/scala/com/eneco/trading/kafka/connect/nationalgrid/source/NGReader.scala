@@ -7,7 +7,7 @@ import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
 import com.eneco.trading.kafka.connect.nationalgrid.config.NGSourceSettings
 import com.eneco.trading.kafka.connect.nationalgrid.domain.{IFDRMessage, MIPIMessage}
 import com.typesafe.scalalogging.StrictLogging
-import nationalgrid.{ArrayOfCLSMIPIPublicationObjectBE, ArrayOfString, CLSRequestObject, GetPublicationDataWMResponse}
+import nationalgrid.{ArrayOfCLSMIPIPublicationObjectBE, ArrayOfString, CLSRequestObject, GetPublicationDataWMResponse, InstantaneousFlowWebServiceSoap, PublicWebServiceSoap}
 import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.source.SourceRecord
 import org.joda.time.Instant
@@ -37,11 +37,11 @@ class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage 
   private val offsetField = "publishedTime"
   var ifrPubTracker: Option[GregorianCalendar] = None
 
-  val ifService = (new nationalgrid.InstantaneousFlowWebServiceSoap12Bindings with
+  val ifService: InstantaneousFlowWebServiceSoap = (new nationalgrid.InstantaneousFlowWebServiceSoap12Bindings with
     scalaxb.SoapClientsAsync with
     DispatchHttpClientsAsyncNG {}).service
 
-  val mipiService = (new nationalgrid.PublicWebServiceSoap12Bindings with
+  val mipiService: PublicWebServiceSoap = (new nationalgrid.PublicWebServiceSoap12Bindings with
     scalaxb.SoapClientsAsync with
     DispatchHttpClientsAsyncNG {}).service
 
@@ -69,8 +69,8 @@ class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage 
 
   def pull(dataItem: String) : Boolean = {
     val today = DateTime.now
-    val marker = offsets.get(dataItem).get
-    val interval = mipiSchedule.get(dataItem).get.pubTimeMinute
+    val marker = offsets(dataItem)
+    val interval = mipiSchedule(dataItem).pubTimeMinute
 
     if((today.plusMinutes(interval)) > marker) {
       true
@@ -146,7 +146,9 @@ class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage 
     import duration._
     val lastPubTime =  Await.result(ifService.getLatestPublicationTime(), Duration(30, SECONDS)).toGregorianCalendar
     val next = if (ifrPubTracker.isDefined) {
-      ifrPubTracker.get.add(Calendar.SECOND, 60).asInstanceOf[GregorianCalendar]
+      val tracker = ifrPubTracker.get
+      tracker.add(Calendar.SECOND, 60)
+      tracker
     } else {
       lastPubTime
     }
@@ -174,7 +176,7 @@ class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage 
             r)
         })
     } else {
-      logger.info(s"Last IFR publication time is ${lastPubTime.getTime().toString}, " +
+      logger.info(s"Last IFR publication time is ${lastPubTime.getTime.toString}, " +
         s"last pulled at ${next.getTime}. Not pulling data.")
       ifrPubTracker = Some(lastPubTime)
       Seq.empty[SourceRecord]

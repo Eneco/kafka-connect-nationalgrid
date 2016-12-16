@@ -43,10 +43,9 @@
         <guava.version>19.0</guava.version>
         <scala.xml.version>1.0.2</scala.xml.version>
         <scala.parser.version>1.0.1</scala.parser.version>
-        <net.dispatcher.version>0.11.3</net.dispatcher.version>
+        <net.dispatcher.version>0.11.1</net.dispatcher.version>
         <scala.logging.version>3.4.0</scala.logging.version>
         <slf4j-log4j12.version>1.7.21</slf4j-log4j12.version>
-        <dispatch.version>0.11.1</dispatch.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <confluent.maven.repo>http://packages.confluent.io/maven/</confluent.maven.repo>
         <cloudera.maven.repo>https://repository.cloudera.com/artifactory/cloudera-repos</cloudera.maven.repo>
@@ -107,18 +106,6 @@
             <groupId>net.databinder.dispatch</groupId>
             <artifactId>dispatch-core_2.11</artifactId>
             <version>${net.dispatcher.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.ning</groupId>
-                    <artifactId> async-http-client</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.ning/async-http-client -->
-        <dependency>
-            <groupId>com.ning</groupId>
-            <artifactId>async-http-client</artifactId>
-            <version> 1.8.8</version>
         </dependency>
         <dependency>
             <groupId>org.scalaj</groupId>
