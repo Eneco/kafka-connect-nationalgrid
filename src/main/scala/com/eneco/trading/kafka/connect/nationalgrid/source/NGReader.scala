@@ -1,7 +1,8 @@
 package com.eneco.trading.kafka.connect.nationalgrid.source
 
-import java.util.GregorianCalendar
-import javax.xml.datatype.DatatypeFactory
+import java.time.Instant
+import java.util.{Calendar, GregorianCalendar}
+import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
 
 import com.eneco.trading.kafka.connect.nationalgrid.config.NGSourceSettings
 import com.eneco.trading.kafka.connect.nationalgrid.domain.{IFDRMessage, MIPIMessage}
@@ -9,11 +10,13 @@ import com.typesafe.scalalogging.StrictLogging
 import nationalgrid.{ArrayOfCLSMIPIPublicationObjectBE, ArrayOfString, CLSRequestObject, GetPublicationDataWMResponse}
 import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.source.SourceRecord
+import org.joda.time.Instant
 
 import scala.concurrent._
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import org.scala_tools.time.Imports._
+
 
 /**
   * Created by andrew@datamountaineer.com on 08/07/16. 
@@ -32,6 +35,7 @@ class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage 
   private val defaultTimestamp = "1900-01-01 00:00:00.000Z"
   private val dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS'Z'")
   private val offsetField = "publishedTime"
+  var ifrPubTracker: Option[GregorianCalendar] = None
 
   val ifService = (new nationalgrid.InstantaneousFlowWebServiceSoap12Bindings with
     scalaxb.SoapClientsAsync with
@@ -68,7 +72,7 @@ class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage 
     val marker = offsets.get(dataItem).get
     val interval = mipiSchedule.get(dataItem).get.pubTimeMinute
 
-    if((today + interval.minutes) > marker) {
+    if((today.plusMinutes(interval)) > marker) {
       true
     } else {
       false
@@ -103,33 +107,6 @@ class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage 
   }
 
   /**
-    * Process an Instantaneous Flow Request
-    *
-    * Call the service and convert to source records
-    * */
-  def processIFD(): Seq[SourceRecord] = {
-    import scala.concurrent.duration._
-    val ifd = Await.result(ifService.getInstantaneousFlowData(), Duration.Inf)
-    val reports = ifd.GetInstantaneousFlowDataResult.getOrElse(None)
-
-    val records = reports match {
-      case None =>
-        logger.warn("No reports found for IFR!")
-        Seq.empty[Struct]
-      case report : nationalgrid.EDPReportBE => Seq(processReport(report))
-    }
-
-    records
-      .map(r => {
-        new SourceRecord(Map("IFR"-> r.get("reportName")),
-          Map(offsetField -> r.get(offsetField)),
-          ifrTopic,
-          r.schema(),
-          r)
-      })
-  }
-
-  /**
     * Process a MIPI request
     *
     * @param request The request to process
@@ -157,5 +134,50 @@ class NGReader(settings: NGSourceSettings) extends MIPIMessage with IFDRMessage 
         r.schema(),
         r)
     })
+  }
+
+  /**
+    * Process an Instantaneous Flow Request
+    *
+    * Call the service and convert to source records
+    * */
+  def processIFD(): Seq[SourceRecord] = {
+
+    import duration._
+    val lastPubTime =  Await.result(ifService.getLatestPublicationTime(), Duration(30, SECONDS)).toGregorianCalendar
+    val next = if (ifrPubTracker.isDefined) {
+      ifrPubTracker.get.add(Calendar.SECOND, 60).asInstanceOf[GregorianCalendar]
+    } else {
+      lastPubTime
+    }
+
+    if (lastPubTime.after(next) || lastPubTime.equals(next)) {
+      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication. Puling data.")
+      val ifd = Await.result(ifService.getInstantaneousFlowData(), Duration(60, SECONDS))
+      val reports = ifd.GetInstantaneousFlowDataResult.getOrElse(None)
+
+      val records = reports match {
+        case None =>
+          logger.warn("No reports found for IFR!")
+          Seq.empty[Struct]
+        case report : nationalgrid.EDPReportBE => Seq(processReport(report))
+      }
+
+      ifrPubTracker = Some(lastPubTime)
+
+      records
+        .map(r => {
+          new SourceRecord(Map("IFR"-> r.get("reportName")),
+            Map(offsetField -> r.get(offsetField)),
+            ifrTopic,
+            r.schema(),
+            r)
+        })
+    } else {
+      logger.info(s"Last IFR publication time is ${lastPubTime.getTime().toString}, " +
+        s"last pulled at ${next.getTime}. Not pulling data.")
+      ifrPubTracker = Some(lastPubTime)
+      Seq.empty[SourceRecord]
+    }
   }
 }
