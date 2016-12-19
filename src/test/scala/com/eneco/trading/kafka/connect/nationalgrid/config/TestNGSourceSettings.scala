@@ -1,6 +1,7 @@
 package com.eneco.trading.kafka.connect.nationalgrid.config
 
 import com.eneco.trading.kafka.connect.nationalgrid.TestConfig
+import com.eneco.trading.kafka.connect.nationalgrid.domain.PullMap
 import org.scalatest.{Matchers, WordSpec}
 
 /**
@@ -14,6 +15,6 @@ class TestNGSourceSettings extends WordSpec with TestConfig with Matchers {
     settings.ifrTopic shouldBe IFR_TOPIC
     settings.mipiTopic shouldBe MIPI_TOPIC
     settings.ifrRequests.head shouldBe IFR_REQUEST
-    settings.mipiRequests.head shouldBe MIPI_REQUEST
+    settings.mipiRequests.head shouldBe pullMap
   }
 }

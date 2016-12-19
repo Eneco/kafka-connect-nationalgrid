@@ -2,14 +2,19 @@ package com.eneco.trading.kafka.connect.nationalgrid
 
 import java.text.SimpleDateFormat
 import java.util
-import java.util.Date
+import java.util.{Collections, Date}
 
-import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceConfig$, RequestType}
+import com.eneco.trading.kafka.connect.nationalgrid.config.NGSourceConfig
+import com.eneco.trading.kafka.connect.nationalgrid.domain.PullMap
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.sink.SinkRecord
+import org.apache.kafka.connect.source.SourceTaskContext
+import org.apache.kafka.connect.storage.OffsetStorageReader
 import org.scalatest.mock.MockitoSugar
+import org.mockito.Mockito._
+import org.scala_tools.time.Imports.DateTimeFormat
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -29,8 +34,12 @@ trait TestConfig extends StrictLogging with MockitoSugar {
   val IFR_TOPIC="ifr"
   val MIPI_TOPIC="mipi"
   val IFR_REQUEST="A"
-  val MIPI_REQUEST="B"
+  val DATA_ITEM = "Nominations, Aggregate Prevailing Nomination, Boiloff to LDZ Total"
+  val MIPI_REQUEST=s"$DATA_ITEM;08:00;10"
+  val OFFSET_DEFAULT="1900-01-01 00:00:00.000Z"
+  val DATE_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS'Z'")
 
+  val pullMap = PullMap(DATA_ITEM, 8,0, 10)
   protected val PARTITION: Int = 12
   protected val PARTITION2: Int = 13
   protected val TOPIC_PARTITION: TopicPartition = new TopicPartition(TOPIC1, PARTITION)
@@ -92,36 +101,35 @@ trait TestConfig extends StrictLogging with MockitoSugar {
   }
 
 
-//  def getSourceTaskContext(lookupPartitionKey: String, offsetValue: String, offsetColumn : String, table : String) = {
-//    /**
-//      * offset holds a map of map[string, something],map[identifier, value]
-//      *
-//      * map(map(assign.import.table->table1) -> map("my_timeuuid"->"2013-01-01 00:05+0000")
-//      */
-//
-//    //set up partition
-//    val partition: util.Map[String, String] = Collections.singletonMap(lookupPartitionKey, table)
-//    //as a list to search for
-//    val partitionList: util.List[util.Map[String, String]] = List(partition)
-//    //set up the offset
-//    val offset: util.Map[String, Object] = Collections.singletonMap(offsetColumn, offsetValue)
-//    //create offsets to initialize from
-//    val offsets :util.Map[util.Map[String, String],util.Map[String, Object]] = Map(partition -> offset)
-//
-//    //mock out reader and task context
-//    val taskContext = mock[SourceTaskContext]
-//    val reader = mock[OffsetStorageReader]
-//    when(reader.offsets(partitionList)).thenReturn(offsets)
-//    when(taskContext.offsetStorageReader()).thenReturn(reader)
-//
-//    taskContext
-//  }
-//
-//  def getSourceTaskContextDefault(url: String) = {
-//    val lookupPartitionKey = ""
-//    val offsetValue = "2013-01-01 00:05:00.0000000Z"
-//    val offsetColumn = "timestampColName"
-//    val table = url
-//    getSourceTaskContext(lookupPartitionKey, offsetValue,offsetColumn, table)
-//  }
+  def getSourceTaskContext(lookupPartitionKey: String, dataItem: String, offsetColumn : String, offsetValue : String) = {
+    /**
+      * offset holds a map of map[string, something],map[identifier, value]
+      *
+      * map(map(dataItem->dataItem) -> map("pubTime"->"2013-01-01 00:05+0000")
+      */
+
+    //set up partition
+    val partition = Collections.singletonMap(lookupPartitionKey, dataItem)
+    //as a list to search for
+    val partitionList = List(partition).asJava
+    //set up the offset
+    val offset: util.Map[String, Object] = Collections.singletonMap(offsetColumn, offsetValue)
+    //create offsets to initialize from
+    val offsets = Map(partition -> offset)
+
+    //mock out reader and task context
+    val taskContext = mock[SourceTaskContext]
+    val reader = mock[OffsetStorageReader]
+    when(reader.offsets(partitionList)).thenReturn(offsets)
+    when(taskContext.offsetStorageReader()).thenReturn(reader)
+    taskContext
+  }
+
+  def getSourceTaskContextDefault(url: String) = {
+    val lookupPartitionKey = ""
+    val offsetValue = "2013-01-01 00:05:00.0000000Z"
+    val offsetColumn = "timestampColName"
+    val table = url
+    getSourceTaskContext(lookupPartitionKey, offsetValue,offsetColumn, table)
+  }
 }

@@ -27,7 +27,7 @@ class NationalGridSourceTask extends SourceTask with StrictLogging {
     logger.info(scala.io.Source.fromInputStream(getClass.getResourceAsStream("/nationalgrid-source-ascii.txt")).mkString)
     val config = NGSourceConfig(props)
     val settings = NGSourceSettings(config)
-    reader = NGReader(settings)
+    reader = NGReader(settings, context)
     timer.schedule(new LoggerTask, 0, 60000)
   }
 
