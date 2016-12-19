@@ -12,6 +12,7 @@ import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.source.SourceTaskContext
 import org.apache.kafka.connect.storage.OffsetStorageReader
+import org.joda.time.format.DateTimeFormatter
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.scala_tools.time.Imports.DateTimeFormat
@@ -37,7 +38,7 @@ trait TestConfig extends StrictLogging with MockitoSugar {
   val DATA_ITEM = "Nominations, Aggregate Prevailing Nomination, Boiloff to LDZ Total"
   val MIPI_REQUEST=s"$DATA_ITEM;08:00;10"
   val OFFSET_DEFAULT="1900-01-01 00:00:00.000Z"
-  val DATE_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS'Z'")
+  val DATE_FORMATTER: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS'Z'")
 
   val pullMap = PullMap(DATA_ITEM, 8,0, 10)
   protected val PARTITION: Int = 12
@@ -56,10 +57,9 @@ trait TestConfig extends StrictLogging with MockitoSugar {
     ASSIGNMENT
   }
 
-  def getProps(): util.Map[String, String] = Map(
+  def getProps: util.Map[String, String] = Map(
     NGSourceConfig.IFR_TOPIC->IFR_TOPIC,
     NGSourceConfig.MIPI_TOPIC->MIPI_TOPIC,
-    NGSourceConfig.IFR_REQUESTS->IFR_REQUEST,
     NGSourceConfig.MIPI_REQUESTS->MIPI_REQUEST).asJava
 
   //build a test record schema
@@ -101,7 +101,7 @@ trait TestConfig extends StrictLogging with MockitoSugar {
   }
 
 
-  def getSourceTaskContext(lookupPartitionKey: String, dataItem: String, offsetColumn : String, offsetValue : String) = {
+  def getSourceTaskContext(lookupPartitionKey: String, dataItem: String, offsetColumn : String, offsetValue : String): SourceTaskContext = {
     /**
       * offset holds a map of map[string, something],map[identifier, value]
       *
@@ -125,7 +125,7 @@ trait TestConfig extends StrictLogging with MockitoSugar {
     taskContext
   }
 
-  def getSourceTaskContextDefault(url: String) = {
+  def getSourceTaskContextDefault(url: String): SourceTaskContext = {
     val lookupPartitionKey = ""
     val offsetValue = "2013-01-01 00:05:00.0000000Z"
     val offsetColumn = "timestampColName"

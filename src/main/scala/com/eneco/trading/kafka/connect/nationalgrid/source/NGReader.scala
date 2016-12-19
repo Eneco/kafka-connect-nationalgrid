@@ -14,6 +14,7 @@ import scala.concurrent._
 import scala.collection.JavaConversions._
 import org.scala_tools.time.Imports._
 import com.datamountaineer.streamreactor.connect.offsets.OffsetHandler
+import org.joda.time.Days
 
 
 
@@ -46,7 +47,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
 
   offsetMap.foreach(offset => logger.info(s"Recovered offsets ${offset.toString()}"))
 
-  val frequencies = settings.mipiRequests.map(mipi => (mipi.dataItem, mipi)).toMap
+  val frequencies: Map[String, PullMap] = settings.mipiRequests.map(mipi => (mipi.dataItem, mipi)).toMap
 
   /**
     * Build a map of table to offset.
@@ -55,13 +56,13 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     * @return The last stored offset.
     * */
   def buildOffsetMap(context: SourceTaskContext, mipi: Set[PullMap]) : Map[String, DateTime] = {
-    mipi.map(mipi => {
+    mipi.flatMap(mipi => {
       val dataItems = List(mipi.dataItem)
       val offsetKeys = OffsetHandler.recoverOffsets(mipi.dataItem, dataItems, context)
       dataItems
         .map(di => (di, OffsetHandler.recoverOffset[String](offsetKeys, NGSourceConfig.OFFSET_FIELD, di, NGSourceConfig.OFFSET_FIELD))) //recover partitions
-        .map({case (k,v) => (k, dateFormatter.parseDateTime(v.getOrElse(defaultTimestamp)))}).toMap
-    }).flatten.toMap
+        .map({ case (k, v) => (k, dateFormatter.parseDateTime(v.getOrElse(defaultTimestamp))) }).toMap
+    }).toMap
   }
 
   /**
@@ -73,7 +74,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     val mipi = settings
                   .mipiRequests
                   .filter(req => pull(req.dataItem))
-                  .map(req => buildCLSRequest(Some(new GregorianCalendar()), req.dataItem))
+                  .flatMap(req => buildCLSRequest(req.dataItem))
                   .flatMap(processMIPI)
     (ifd ++ mipi).toList
   }
@@ -88,7 +89,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
   def pull(dataItem: String) : Boolean = {
     val now = DateTime.now //get current time
     val marker = offsetMap(dataItem) //last publication
-    val frequency = frequencies.get(dataItem).get
+    val frequency = frequencies(dataItem)
     val pubTime = new DateTime().withTime(frequency.pubHour, frequency.pubMin, 0, 0)
 
     if (now.isAfter(marker) && now.isAfter(pubTime)) true else false
@@ -97,28 +98,30 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
   /**
     * Build a CLSRequest for MIPI
     *
-    * @param date The gas day to build the request for
     * @param dataItem The data item to fetch
     * @return A CLS for the gas day and data item
     * */
-  def buildCLSRequest(date: Option[GregorianCalendar] = None, dataItem: String) : CLSRequestObject = {
+  def buildCLSRequest(dataItem: String) : List[CLSRequestObject] = {
+    val marker = offsetMap(dataItem)
+    val now = DateTime.now
+    val diff = Days.daysBetween(marker, now).getDays
+    val dayDiff = if (diff >= 30) 30 else diff
 
-    val gasDay =  if (date.isDefined) {
-      DatatypeFactory.newInstance().newXMLGregorianCalendar(date.get)
-    } else {
-      DatatypeFactory.newInstance().newXMLGregorianCalendar()
-    }
-
-    gasDay.setHour(0)
-    gasDay.setMinute(0)
-    gasDay.setSecond(0)
-    gasDay.setMillisecond(0)
-    CLSRequestObject(LatestFlag = Some("Y"),
-      ApplicableForFlag = Some("N"),
-      FromDate = gasDay,
-      ToDate = gasDay,
-      DateType = Some("GASDAY"),
-      PublicationObjectNameList = Some(ArrayOfString(Some(dataItem))))
+    val days = List.range(0, dayDiff)
+    days.map( x =>
+    {
+      val gasDay = DatatypeFactory.newInstance().newXMLGregorianCalendar(marker.plusDays(x).toGregorianCalendar)
+      gasDay.setHour(0)
+      gasDay.setMinute(0)
+      gasDay.setSecond(0)
+      gasDay.setMillisecond(0)
+      CLSRequestObject(LatestFlag = Some("Y"),
+        ApplicableForFlag = Some("N"),
+        FromDate = gasDay,
+        ToDate = gasDay,
+        DateType = Some("GASDAY"),
+        PublicationObjectNameList = Some(ArrayOfString(Some(dataItem))))
+    })
   }
 
   /**
@@ -143,7 +146,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     val dataItem = request.PublicationObjectNameList.get.string.map(m=>m.get).mkString
 
     //set the offset as now plus frequency
-    val newMarker = DateTime.now.plusMinutes(frequencies.get(dataItem).get.frequency)
+    val newMarker = DateTime.now.plusMinutes(frequencies(dataItem).frequency)
     offsetMap(dataItem) = newMarker
 
     records.map(r => {

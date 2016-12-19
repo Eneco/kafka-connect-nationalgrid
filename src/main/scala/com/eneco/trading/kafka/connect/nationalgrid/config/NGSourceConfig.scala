@@ -24,8 +24,6 @@ object NGSourceConfig {
   val IFR_TOPIC = "connect.nationalgrid.irf.topic"
   val IFR_TOPIC_DEFAULT = "sys_nationalgrid_ifr_raw"
   val IFR_TOPIC_DOC = "The topic to write IFR requests to."
-  val IFR_REQUESTS = "connect.nationalgrid.ifr.requests"
-  val IFR_REQUESTS_DOC = "Comma separated list or request supported at IRF"
 
   val MIPI_TOPIC = "connect.nationalgrid.mipi.topic"
   val MIPI_TOPIC_DEFAULT = "sys_nationalgrid_mipi_raw"
@@ -33,15 +31,7 @@ object NGSourceConfig {
   val MIPI_REQUESTS = "connect.nationalgrid.mipi.requests"
   val MIPI_REQUESTS_DOC = "Pipe separated list or request supported at MIPI"
 
-  val OFFSET_KEY = "nationalgrid"
-
-//  val REFRESH_RATE = "connect.national.grid.refresh.rate"
-//  val REFRESH_RATE_DEFAULT =  "PT12M"
-//  val REFRESH_RATE_DOC = "The refresh rate at which the source will check for publication of data in milliseconds, " +
-//    s"default is $REFRESH_RATE_DEFAULT"
-
   val config: ConfigDef = new ConfigDef()
-      .define(IFR_REQUESTS, Type.LIST, Importance.HIGH, IFR_REQUESTS_DOC)
       .define(IFR_TOPIC, Type.STRING, IFR_TOPIC_DEFAULT, Importance.HIGH, IFR_TOPIC_DOC)
       .define(MIPI_REQUESTS, Type.STRING, Importance.HIGH, MIPI_REQUESTS_DOC)
       .define(MIPI_TOPIC, Type.STRING, MIPI_TOPIC_DEFAULT, Importance.HIGH, MIPI_TOPIC_DOC)
