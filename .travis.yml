@@ -11,6 +11,6 @@ script: mvn package
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login -u="$DOCKER_USER" -p="$DOCKER_PASS";
-    docker build -t eneco/kafka-connect-nationalgrid;
+    docker build -t eneco/kafka-connect-nationalgrid .;
     docker push eneco/kafka-connect-nationalgrid;
     fi
