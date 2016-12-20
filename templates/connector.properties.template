@@ -1,0 +1,5 @@
+connector.class=com.eneco.trading.kafka.connect.nationalgrid.source
+max.tasks=1
+connect.nationalgrid.irf.topic=sys_national_grid_ifr_raw
+connect.nationalgrid.mipi.topic=sys_national_grid_mipi_raw
+connect.nationalgrid.mipi.requests=dataItem1;00:00;10|dataItem2;00:00;10
