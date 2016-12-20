@@ -107,10 +107,10 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     val diff = Days.daysBetween(marker, now).getDays
     val dayDiff = if (diff >= 30) 30 else diff
 
-    val days = List.range(0, dayDiff)
+    val days = List.range(0, dayDiff).reverse
     days.map( x =>
     {
-      val gasDay = DatatypeFactory.newInstance().newXMLGregorianCalendar(marker.plusDays(x).toGregorianCalendar)
+      val gasDay = DatatypeFactory.newInstance().newXMLGregorianCalendar(now.minusDays(x).toGregorianCalendar)
       gasDay.setHour(0)
       gasDay.setMinute(0)
       gasDay.setSecond(0)
