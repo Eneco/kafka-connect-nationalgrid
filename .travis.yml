@@ -8,3 +8,9 @@ scala: 2.11.7
 jdk: oraclejdk8
 install: mvn package
 script: mvn docker:build
+
+after_success:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker login -u="$DOCKER_USER" -p="$DOCKER_PASS";
+    docker push eneco/kafka-connect-national-grid;
+    fi
