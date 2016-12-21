@@ -13,6 +13,6 @@ class TestNGSourceSettings extends WordSpec with TestConfig with Matchers {
     val settings = NGSourceSettings(config)
     settings.ifrTopic shouldBe IFR_TOPIC
     settings.mipiTopic shouldBe MIPI_TOPIC
-    settings.mipiRequests.head shouldBe pullMap
+    settings.mipiRequests.contains(pullMap) shouldBe true
   }
 }
