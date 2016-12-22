@@ -14,7 +14,10 @@ import org.apache.kafka.connect.source.SourceTaskContext
 import org.apache.kafka.connect.storage.OffsetStorageReader
 import org.joda.time.format.DateTimeFormatter
 import org.scalatest.mock.MockitoSugar
+
+import org.mockito.Matchers.any
 import org.mockito.Mockito._
+
 import org.scala_tools.time.Imports.DateTimeFormat
 
 import scala.collection.JavaConversions._
@@ -111,7 +114,7 @@ trait TestConfig extends StrictLogging with MockitoSugar {
     //set up partition
     val partition = Collections.singletonMap(lookupPartitionKey, dataItem)
     //as a list to search for
-    val partitionList = List(partition).asJava
+    //val partitionList = List(partition).asJava
     //set up the offset
     val offset: util.Map[String, Object] = Collections.singletonMap(offsetColumn, offsetValue)
     //create offsets to initialize from
@@ -120,7 +123,7 @@ trait TestConfig extends StrictLogging with MockitoSugar {
     //mock out reader and task context
     val taskContext = mock[SourceTaskContext]
     val reader = mock[OffsetStorageReader]
-    when(reader.offsets(partitionList)).thenReturn(offsets)
+    when(reader.offsets(any[util.List[util.Map[String, String]]])).thenReturn(offsets)
     when(taskContext.offsetStorageReader()).thenReturn(reader)
     taskContext
   }

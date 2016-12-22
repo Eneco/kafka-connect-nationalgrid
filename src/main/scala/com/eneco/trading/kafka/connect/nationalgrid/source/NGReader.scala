@@ -12,6 +12,7 @@ import org.apache.kafka.connect.source.{SourceRecord, SourceTaskContext}
 
 import scala.concurrent._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import org.scala_tools.time.Imports._
 import com.datamountaineer.streamreactor.connect.offsets.OffsetHandler
 import org.joda.time.Days
@@ -44,9 +45,6 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
   private val ifrTopic = settings.ifrTopic
   private val mipiTopic = settings.mipiTopic
   val offsetMap = collection.mutable.Map(buildOffsetMap(context, settings.mipiRequests).toSeq: _*)
-
-  offsetMap.foreach(offset => logger.info(s"Recovered offsets ${offset.toString()}"))
-
   val frequencies: Map[String, PullMap] = settings.mipiRequests.map(mipi => (mipi.dataItem, mipi)).toMap
 
   /**
@@ -59,8 +57,16 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     mipi.flatMap(mipi => {
       val dataItems = List(mipi.dataItem)
       val offsetKeys = OffsetHandler.recoverOffsets(mipi.dataItem, dataItems, context)
+
+      if (offsetKeys.isEmpty) {
+        logger.warn(s"Failed to recover any offset keys fom dataItem ${mipi.dataItem}. Default will be used.")
+      }
+      else {
+        offsetKeys.asScala.foreach(k => logger.info(s"Recovered offset key ${k._2.asScala.toString()}"))
+      }
+
       dataItems
-        .map(di => (di, OffsetHandler.recoverOffset[String](offsetKeys, NGSourceConfig.OFFSET_FIELD, di, NGSourceConfig.OFFSET_FIELD))) //recover partitions
+        .map(di => (di, OffsetHandler.recoverOffset[String](offsetKeys, di, di, NGSourceConfig.OFFSET_FIELD))) //recover partitions
         .map({ case (k, v) => (k, dateFormatter.parseDateTime(v.getOrElse(defaultTimestamp))) }).toMap
     }).toMap
   }
@@ -157,7 +163,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
 
     records.map(r => {
       new SourceRecord(
-        Map(r.get("dataItemName").toString -> r.get("dataItemName")),
+        Map(dataItem -> dataItem),
         Map(NGSourceConfig.OFFSET_FIELD -> newMarker),
         mipiTopic,
         r.schema(),
