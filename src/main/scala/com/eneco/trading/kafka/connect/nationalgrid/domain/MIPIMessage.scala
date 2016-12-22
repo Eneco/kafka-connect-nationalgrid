@@ -31,9 +31,9 @@ trait MIPIMessage {
         .put("dataItemName", dataItemName.getOrElse(""))
         .put("applicableAt", applicableAt.toString)
         .put("applicableFor", applicableFor.toString)
-        .put("value", value.toString)
+        .put("value", value.get.toString)
         .put("generatedTimeStamp", generatedTimeStamp.toString)
-        .put("substituted", substituted.toString)
+        .put("substituted", substituted.get.toString)
         .put("createdDate", createdDate.toString)
   }
 
