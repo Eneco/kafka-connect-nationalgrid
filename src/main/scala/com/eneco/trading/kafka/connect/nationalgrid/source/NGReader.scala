@@ -62,7 +62,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
         logger.warn(s"Failed to recover any offset keys fom dataItem ${mipi.dataItem}. Default will be used.")
       }
       else {
-        offsetKeys.asScala.foreach(k => logger.info(s"Recovered offset key ${k._2.asScala.toString()}"))
+        offsetKeys.asScala.foreach(k => logger.info(s"Recovered offset key ${mipi.dataItem}"))
       }
 
       dataItems
