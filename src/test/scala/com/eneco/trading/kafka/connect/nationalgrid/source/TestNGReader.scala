@@ -56,5 +56,7 @@ class TestNGReader extends WordSpec with Matchers with BeforeAndAfter with Mocki
     reader.offsetMap(pullMap.dataItem) -> DATE_FORMATTER.parseDateTime(OFFSET_DEFAULT)
     val records = reader.process()
     records.size should be > 0
+    val records2 = reader.process()
+    records2.size shouldBe 0
   }
 }

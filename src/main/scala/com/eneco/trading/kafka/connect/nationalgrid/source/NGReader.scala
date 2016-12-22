@@ -92,7 +92,13 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     val frequency = frequencies(dataItem)
     val pubTime = new DateTime().withTime(frequency.pubHour, frequency.pubMin, 0, 0)
 
-    if (now.isAfter(marker) && now.isAfter(pubTime)) true else false
+    if (now.isAfter(marker) && now.isAfter(pubTime)) {
+      logger.debug(s"Pulling data from $dataItem. Last marker was ${marker.toDateTime.toString()}.")
+      true
+    } else {
+      logger.debug(s"Not pulling data from $dataItem. Last marker was ${marker.toDateTime.toString()}.")
+      false
+    }
   }
 
   /**
