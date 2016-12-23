@@ -162,6 +162,8 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     val newMarker = DateTime.now.plusMinutes(frequencies(dataItem).frequency)
     offsetMap(dataItem) = newMarker
 
+    if (records.isEmpty) logger.warn(s"No data retrieved for dataItem $dataItem.")
+
     records.map(r => {
       new SourceRecord(
         Map(dataItem -> dataItem),
