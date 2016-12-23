@@ -1,6 +1,6 @@
 package com.eneco.trading.kafka.connect.nationalgrid.domain
 
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import nationalgrid.{EDPEnergyGraphTableBE, EDPObjectBE, EDPReportBE}
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 

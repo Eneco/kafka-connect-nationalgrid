@@ -5,16 +5,15 @@ import javax.xml.datatype.DatatypeFactory
 
 import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceSettings}
 import com.eneco.trading.kafka.connect.nationalgrid.domain.{IFDRMessage, MIPIMessage, PullMap}
-import com.typesafe.scalalogging.StrictLogging
 import nationalgrid.{ArrayOfCLSMIPIPublicationObjectBE, ArrayOfString, CLSRequestObject, GetPublicationDataWMResponse, InstantaneousFlowWebServiceSoap, PublicWebServiceSoap}
 import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.source.{SourceRecord, SourceTaskContext}
 
 import scala.concurrent._
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 import org.scala_tools.time.Imports._
 import com.datamountaineer.streamreactor.connect.offsets.OffsetHandler
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.joda.time.Days
 
 
@@ -30,8 +29,8 @@ object NGReader {
 class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends MIPIMessage with IFDRMessage with StrictLogging {
   logger.info("Initialising National Grid Reader")
 
-  private val defaultTimestamp = "1900-01-01 00:00:00.000Z"
-  private val dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS'Z'")
+  private val defaultTimestamp = NGSourceConfig.DEFAULT_OFFSET_TIMESTAMP
+  private val dateFormatter = DateTimeFormat.forPattern(NGSourceConfig.DEFAULT_OFFSET_PATTERN)
   var ifrPubTracker: Option[GregorianCalendar] = None
 
   val ifService: InstantaneousFlowWebServiceSoap = (new nationalgrid.InstantaneousFlowWebServiceSoap12Bindings with
@@ -61,13 +60,15 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
       if (offsetKeys.isEmpty) {
         logger.warn(s"Failed to recover any offset keys fom dataItem ${mipi.dataItem}. Default will be used.")
       }
-      else {
-        offsetKeys.asScala.foreach(k => logger.info(s"Recovered offset key ${mipi.dataItem}"))
-      }
 
       dataItems
         .map(di => (di, OffsetHandler.recoverOffset[String](offsetKeys, di, di, NGSourceConfig.OFFSET_FIELD))) //recover partitions
-        .map({ case (k, v) => (k, dateFormatter.parseDateTime(v.getOrElse(defaultTimestamp))) }).toMap
+        .map({ case (k, v) => {
+          val offsetDate = dateFormatter.parseDateTime(v.getOrElse(defaultTimestamp))
+          logger.info(s"Recovered offset for $k with value ${offsetDate.toString()}")
+          (k, offsetDate)
+        }
+      }).toMap
     }).toMap
   }
 
@@ -98,7 +99,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     val frequency = frequencies(dataItem)
     val pubTime = new DateTime().withTime(frequency.pubHour, frequency.pubMin, 0, 0)
 
-    if (now.isAfter(marker) && now.isAfter(pubTime)) {
+    if (now.isAfter(marker) && now.isAfter(pubTime) && marker.isBefore(pubTime)) {
       logger.debug(s"Pulling data from $dataItem. Last marker was ${marker.toDateTime.toString()}.")
       true
     } else {
@@ -164,7 +165,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     records.map(r => {
       new SourceRecord(
         Map(dataItem -> dataItem),
-        Map(NGSourceConfig.OFFSET_FIELD -> newMarker),
+        Map(NGSourceConfig.OFFSET_FIELD -> newMarker.toDateTime.toString()),
         mipiTopic,
         r.schema(),
         r)
@@ -206,13 +207,13 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
         .map(r => {
           new SourceRecord(
             Map("IFR"-> r.get("reportName")),
-            Map(NGSourceConfig.OFFSET_FIELD -> r.get(NGSourceConfig.OFFSET_FIELD)),
+            Map(NGSourceConfig.OFFSET_FIELD -> lastPubTime.getTime.toString),
             ifrTopic,
             r.schema(),
             r)
         })
     } else {
-      logger.info(s"Last IFR publication time is ${lastPubTime.getTime.toString}, " +
+      logger.debug(s"Last IFR publication time is ${lastPubTime.getTime.toString}, " +
         s"last pulled at ${next.getTime}. Not pulling data.")
       ifrPubTracker = Some(lastPubTime)
       Seq.empty[SourceRecord]

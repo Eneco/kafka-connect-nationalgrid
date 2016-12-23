@@ -19,6 +19,8 @@ object RequestType extends Enumeration {
 
 object NGSourceConfig {
 
+  val DEFAULT_OFFSET_TIMESTAMP = "1900-01-01T00:00:00.000+01:00"
+  val DEFAULT_OFFSET_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
   val DATA_ITEM = "DATA_ITEM"
   val OFFSET_FIELD = "publishedTime"
   val IFR_TOPIC = "connect.nationalgrid.irf.topic"

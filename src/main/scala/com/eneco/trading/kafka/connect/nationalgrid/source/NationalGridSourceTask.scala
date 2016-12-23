@@ -3,8 +3,8 @@ package com.eneco.trading.kafka.connect.nationalgrid.source
 import java.util
 import java.util.{Timer, TimerTask}
 
-import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceConfig$, NGSourceSettings, NGSourceSettings$}
-import com.typesafe.scalalogging.StrictLogging
+import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceSettings}
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.kafka.connect.source.{SourceRecord, SourceTask}
 
 import scala.collection.mutable

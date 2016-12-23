@@ -6,7 +6,7 @@ import java.util.{Collections, Date}
 
 import com.eneco.trading.kafka.connect.nationalgrid.config.NGSourceConfig
 import com.eneco.trading.kafka.connect.nationalgrid.domain.PullMap
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.sink.SinkRecord
@@ -14,10 +14,8 @@ import org.apache.kafka.connect.source.SourceTaskContext
 import org.apache.kafka.connect.storage.OffsetStorageReader
 import org.joda.time.format.DateTimeFormatter
 import org.scalatest.mock.MockitoSugar
-
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
-
 import org.scala_tools.time.Imports.DateTimeFormat
 
 import scala.collection.JavaConversions._
@@ -39,9 +37,9 @@ trait TestConfig extends StrictLogging with MockitoSugar {
   val MIPI_TOPIC="mipi"
   val IFR_REQUEST="A"
   val DATA_ITEM = "Nominations, Prevailing Nomination, Aldbrough, Storage Entry"
-  val MIPI_REQUEST=s"Nominations, Prevailing Nomination, Aldbrough, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, Aldbrough, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, Avonmouth, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, Avonmouth, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, AvonmouthBL, Storage Boiloff;06:00;1440|Nominations, Prevailing Nomination, Bacton, Interconnector Entry;06:00;1440|Nominations, Prevailing Nomination, Bacton, Interconnector Exit;06:00;1440|Nominations, Prevailing Nomination, Bacton-BBL, Interconnector Entry;06:00;1440|Nominations, Prevailing Nomination, Bacton-BBL, Interconnector Exit;06:00;1440|Nominations, Prevailing Nomination, Bacton-Perenco, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Bacton-Seal, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Bacton-Shell, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Bacton-Tullow, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Barrow, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, BurtonPoint, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Dragon, LNG Importation;06:00;1440|Nominations, Prevailing Nomination, DynevorArms, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, DynevorArms, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, DynevorArmsBN, Storage Boiloff;06:00;1440|Nominations, Prevailing Nomination, Easington-Amethyst, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Easington-Dimlington, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Easington-Langeled, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Easington-WestSole, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Easington-York, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Glenmavis, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, Glenmavis, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, GlenmavisBL, Storage Boiloff;06:00;1440|Nominations, Prevailing Nomination, GrainNTS1, LNG Importation;06:00;1440|Nominations, Prevailing Nomination, GrainNTS2, LNG Importation;06:00;1440|Nominations, Prevailing Nomination, Hatfield Moor, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, Hatfield, OnshoreField;06:00;1440|Nominations, Prevailing Nomination, HatfieldMoor, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, Hilltop, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, Hilltop, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, HoleHouseFarm, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, HoleHousFm, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, Holford, OnshoreField;06:00;1440|Nominations, Prevailing Nomination, Holford, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, Holford, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, Hornsea, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, Hornsea, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, HumblyGrov, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, HumblyGrov, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, IsleOfGrain, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, IsleOfGrainBL, Storage Boiloff;06:00;1440|Nominations, Prevailing Nomination, Moffat, Interconnector Entry;06:00;1440|Nominations, Prevailing Nomination, Moffat, Interconnector Exit;06:00;1440|Nominations, Prevailing Nomination, Partington, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, Partington, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, PartingtonBL, Storage Boiloff;06:00;1440|Nominations, Prevailing Nomination, Rough, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, RoughStor, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, SouthHook, LNG Importation;06:00;1440|Nominations, Prevailing Nomination, STFergus-Mobil, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, STFergus-Shell, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, STFergus-NSMP, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Stublach, Storage Entry;06:00;1440|Nominations, Prevailing Nomination, Stublach, Storage Exit;06:00;1440|Nominations, Prevailing Nomination, Teesside-BP, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Teesside-PX, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Theddlethorpe, Sub Terminal;06:00;1440|Nominations, Prevailing Nomination, Wytchfarm, OnshoreField;06:00;1440"
-  val OFFSET_DEFAULT="1900-01-01 00:00:00.000Z"
-  val DATE_FORMATTER: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS'Z'")
+  val MIPI_REQUEST=s"Nominations, Prevailing Nomination, Aldbrough, Storage Entry;06:00;1440"
+  val OFFSET_DEFAULT=NGSourceConfig.DEFAULT_OFFSET_TIMESTAMP
+  val DATE_FORMATTER: DateTimeFormatter = DateTimeFormat.forPattern(NGSourceConfig.DEFAULT_OFFSET_PATTERN)
 
   val pullMap = PullMap(DATA_ITEM, 6, 0, 1440)
   protected val PARTITION: Int = 12

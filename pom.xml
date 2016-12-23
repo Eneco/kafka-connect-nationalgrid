@@ -32,7 +32,7 @@
     <properties>
         <java.version>1.8</java.version>
         <scala.major.version>2.11</scala.major.version>
-        <scala.version>2.11.8</scala.version>
+        <scala.version>2.11.7</scala.version>
         <confluent.version>3.0.1</confluent.version>
         <kafka.version>0.10.0.1</kafka.version>
         <dm.common.version>0.6</dm.common.version>
@@ -45,7 +45,7 @@
         <scala.xml.version>1.0.2</scala.xml.version>
         <scala.parser.version>1.0.1</scala.parser.version>
         <net.dispatcher.version>0.11.1</net.dispatcher.version>
-        <scala.logging.version>3.4.0</scala.logging.version>
+        <scala.logging.version>2.1.2</scala.logging.version>
         <slf4j-log4j12.version>1.7.21</slf4j-log4j12.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <confluent.maven.repo>http://packages.confluent.io/maven/</confluent.maven.repo>
@@ -74,8 +74,8 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
-            <artifactId>scala-logging_${scala.major.version}</artifactId>
-            <version>${scala.logging.version}</version>
+            <artifactId>scala-logging-slf4j_2.11</artifactId>
+            <version>2.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
