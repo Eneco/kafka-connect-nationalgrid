@@ -14,7 +14,10 @@ import scala.collection.JavaConversions._
 import org.scala_tools.time.Imports._
 import com.datamountaineer.streamreactor.connect.offsets.OffsetHandler
 import com.typesafe.scalalogging.slf4j.StrictLogging
+import org.apache.kafka.connect.errors.ConnectException
 import org.joda.time.Days
+
+import scala.util.{Failure, Success, Try}
 
 
 
@@ -45,6 +48,8 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
   private val mipiTopic = settings.mipiTopic
   val offsetMap = collection.mutable.Map(buildOffsetMap(context, settings.mipiRequests).toSeq: _*)
   val frequencies: Map[String, PullMap] = settings.mipiRequests.map(mipi => (mipi.dataItem, mipi)).toMap
+  var ifrErrorCounter = 0
+  val ifrMaxErrors = 100
 
   /**
     * Build a map of table to offset.
@@ -77,7 +82,18 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     *
     * */
   def process() : List[SourceRecord] = {
-    val ifd = processIFD()
+    val ifd = Try(processIFD()) match {
+      case Success(s) => s
+      case Failure(f) =>
+        logger.error(s"Error trying to retrieve IFR data. ${f.getMessage}")
+        ifrErrorCounter += 1
+        if (ifrErrorCounter.equals(ifrMaxErrors)) {
+          throw new ConnectException(s"Error trying to retrieve IFR data. ${f.getMessage}")
+        } else {
+          Seq.empty[SourceRecord]
+        }
+    }
+
     val mipi = settings
                   .mipiRequests
                   .filter(req => pull(req.dataItem))
@@ -185,14 +201,14 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     val lastPubTime =  Await.result(ifService.getLatestPublicationTime(), Duration(30, SECONDS)).toGregorianCalendar
     val next = if (ifrPubTracker.isDefined) {
       val tracker = ifrPubTracker.get
-      tracker.add(Calendar.SECOND, 60)
+      tracker.add(Calendar.MINUTE, 5)
       tracker
     } else {
       lastPubTime
     }
 
     if (lastPubTime.after(next) || lastPubTime.equals(next)) {
-      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication. Puling data.")
+      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication. Pulling data.")
       val ifd = Await.result(ifService.getInstantaneousFlowData(), Duration(60, SECONDS))
       val reports = ifd.GetInstantaneousFlowDataResult.getOrElse(None)
 
