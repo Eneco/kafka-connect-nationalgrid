@@ -1,6 +1,7 @@
 package com.eneco.trading.kafka.connect.nationalgrid.source
 
 import java.util
+import java.util.concurrent.TimeUnit
 import java.util.{Timer, TimerTask}
 
 import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceSettings}
@@ -36,6 +37,7 @@ class NationalGridSourceTask extends SourceTask with StrictLogging {
   override def poll(): util.List[SourceRecord] = {
     reader.process()
   }
+
 
   override def version(): String = "1"
 

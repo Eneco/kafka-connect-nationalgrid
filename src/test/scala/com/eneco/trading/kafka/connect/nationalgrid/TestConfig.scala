@@ -40,6 +40,7 @@ trait TestConfig extends StrictLogging with MockitoSugar {
   val MIPI_REQUEST=s"Nominations, Prevailing Nomination, Aldbrough, Storage Entry;06:00;1440"
   val OFFSET_DEFAULT=NGSourceConfig.DEFAULT_OFFSET_TIMESTAMP
   val DATE_FORMATTER: DateTimeFormatter = DateTimeFormat.forPattern(NGSourceConfig.DEFAULT_OFFSET_PATTERN)
+  val POLL_INTERVAL = 60000
 
   val pullMap = PullMap(DATA_ITEM, 6, 0, 1440)
   protected val PARTITION: Int = 12
@@ -58,10 +59,12 @@ trait TestConfig extends StrictLogging with MockitoSugar {
     ASSIGNMENT
   }
 
-  def getProps: util.Map[String, String] = Map(
+  def getProps = Map(
     NGSourceConfig.IFR_TOPIC->IFR_TOPIC,
     NGSourceConfig.MIPI_TOPIC->MIPI_TOPIC,
-    NGSourceConfig.MIPI_REQUESTS->MIPI_REQUEST).asJava
+    NGSourceConfig.MIPI_REQUESTS->MIPI_REQUEST,
+    NGSourceConfig.POLL_INTERVAL_MS->POLL_INTERVAL.toString
+  ).asJava
 
   //build a test record schema
   def createSchema: Schema = {

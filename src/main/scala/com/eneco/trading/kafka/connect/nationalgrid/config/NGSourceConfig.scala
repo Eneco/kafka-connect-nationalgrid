@@ -33,8 +33,13 @@ object NGSourceConfig {
   val MIPI_REQUESTS = "connect.nationalgrid.mipi.requests"
   val MIPI_REQUESTS_DOC = "Pipe separated list or request supported at MIPI"
 
+  val POLL_INTERVAL_MS = "connect.nationalgrid.poll.interval"
+  val POLL_INTERVAL_MS_DOC = "Time interval in milliseconds between checking for new data, IFR."
+  val POLL_INTERVAL_MS_DEFAULT = 300000
+
   val config: ConfigDef = new ConfigDef()
       .define(IFR_TOPIC, Type.STRING, IFR_TOPIC_DEFAULT, Importance.HIGH, IFR_TOPIC_DOC)
       .define(MIPI_REQUESTS, Type.STRING, Importance.HIGH, MIPI_REQUESTS_DOC)
       .define(MIPI_TOPIC, Type.STRING, MIPI_TOPIC_DEFAULT, Importance.HIGH, MIPI_TOPIC_DOC)
+      .define(POLL_INTERVAL_MS, Type.INT, POLL_INTERVAL_MS_DEFAULT, Importance.HIGH, POLL_INTERVAL_MS_DOC)
 }

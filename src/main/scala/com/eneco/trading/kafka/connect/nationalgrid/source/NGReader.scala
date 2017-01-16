@@ -1,5 +1,6 @@
 package com.eneco.trading.kafka.connect.nationalgrid.source
 
+import java.util.concurrent.TimeUnit
 import java.util.{Calendar, GregorianCalendar}
 import javax.xml.datatype.DatatypeFactory
 
@@ -196,10 +197,9 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     * Call the service and convert to source records
     * */
   def processIFD(): Seq[SourceRecord] = {
+    sleeper()
 
     import duration._
-
-    Thread.sleep(300000)
     val lastPubTime =  Await.result(ifService.getLatestPublicationTime(), Duration(30, SECONDS)).toGregorianCalendar
     val next = if (ifrPubTracker.isDefined) {
       val tracker = ifrPubTracker.get
@@ -238,5 +238,11 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
       ifrPubTracker = Some(lastPubTime)
       Seq.empty[SourceRecord]
     }
+  }
+
+
+  def sleeper() = {
+    logger.info(s"Sleeping for ${TimeUnit.MILLISECONDS.toMinutes(settings.pollInterval)} minutes to not kill National Grid API")
+    Thread.sleep(settings.pollInterval)
   }
 }

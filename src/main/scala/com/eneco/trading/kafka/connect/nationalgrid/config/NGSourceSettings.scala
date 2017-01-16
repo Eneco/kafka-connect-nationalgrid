@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
   * stream-reactor
   */
 
-case class NGSourceSettings(ifrTopic: String, mipiRequests: Set[PullMap], mipiTopic: String)
+case class NGSourceSettings(ifrTopic: String, mipiRequests: Set[PullMap], mipiTopic: String, pollInterval: Int)
 
 object NGSourceSettings {
   def apply(config: NGSourceConfig): NGSourceSettings = {
@@ -24,6 +24,7 @@ object NGSourceSettings {
                           val hourMin = m(1).split(":")
                           PullMap(m(0), hourMin(0).toInt, hourMin(1).toInt, m(2).toInt)
                         }).toSet
-    NGSourceSettings(ifrTopic, mipiRequests, mipiTopic)
+    val interval = config.getInt(NGSourceConfig.POLL_INTERVAL_MS)
+    NGSourceSettings(ifrTopic, mipiRequests, mipiTopic, interval)
   }
 }

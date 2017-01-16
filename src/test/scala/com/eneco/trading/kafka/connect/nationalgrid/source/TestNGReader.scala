@@ -18,8 +18,8 @@ import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
   */
 class TestNGReader extends WordSpec with Matchers with BeforeAndAfter with MockitoSugar with TestConfig with IFDRMessage {
 
-  val sourceContext: SourceTaskContext = getSourceTaskContext(pullMap.dataItem, pullMap.dataItem, NGSourceConfig.OFFSET_FIELD, OFFSET_DEFAULT)
-  val props: util.Map[String, String] = getProps
+  val sourceContext = getSourceTaskContext(pullMap.dataItem, pullMap.dataItem, NGSourceConfig.OFFSET_FIELD, OFFSET_DEFAULT)
+  val props = getProps
   val config = new NGSourceConfig(props)
   val settings = NGSourceSettings(config)
   val reader = NGReader(settings, sourceContext)
@@ -35,7 +35,7 @@ class TestNGReader extends WordSpec with Matchers with BeforeAndAfter with Mocki
   }
 
   "should not pull data" in {
-    reader.offsetMap(pullMap.dataItem) = DateTime.now.plusMinutes(10)
+    reader.offsetMap(pullMap.dataItem) = DateTime.now.plusMinutes(50)
     reader.pull(pullMap.dataItem) shouldBe false
   }
 
