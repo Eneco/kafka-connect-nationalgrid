@@ -198,6 +198,8 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
   def processIFD(): Seq[SourceRecord] = {
 
     import duration._
+
+    Thread.sleep(300000)
     val lastPubTime =  Await.result(ifService.getLatestPublicationTime(), Duration(30, SECONDS)).toGregorianCalendar
     val next = if (ifrPubTracker.isDefined) {
       val tracker = ifrPubTracker.get
