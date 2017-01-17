@@ -50,7 +50,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
   val frequencies: Map[String, PullMap] = settings.mipiRequests.map(mipi => (mipi.dataItem, mipi)).toMap
   var ifrErrorCounter = 0
   val ifrMaxErrors = 100
-  var backoff = new ExponetialBackOff(settings.refreshRate, settings.maxBackOff)
+  var backoff = new ExponentialBackOff(settings.refreshRate, settings.maxBackOff)
 
   /**
     * Build a map of table to offset.
@@ -206,6 +206,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     * */
   def processIFD(): Seq[SourceRecord] = {
     import duration._
+    logger.info("Getting last publication time for IFR")
     val lastPubTime =  Await.result(ifService.getLatestPublicationTime(), Duration(30, SECONDS)).toGregorianCalendar
     val next = if (ifrPubTracker.isDefined) {
       val tracker = ifrPubTracker.get
