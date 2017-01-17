@@ -216,7 +216,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     }
 
     if (lastPubTime.after(next) || lastPubTime.equals(next)) {
-      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication. Pulling data.")
+      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication ${lastPubTime.getTime}. Pulling data.")
       val ifd = Await.result(ifService.getInstantaneousFlowData(), Duration(60, SECONDS))
       val reports = ifd.GetInstantaneousFlowDataResult.getOrElse(None)
 
