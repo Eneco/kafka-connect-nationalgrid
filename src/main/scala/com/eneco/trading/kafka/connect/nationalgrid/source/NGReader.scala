@@ -1,6 +1,5 @@
 package com.eneco.trading.kafka.connect.nationalgrid.source
 
-import java.util.concurrent.TimeUnit
 import java.util.{Calendar, GregorianCalendar}
 import javax.xml.datatype.DatatypeFactory
 
@@ -51,6 +50,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
   val frequencies: Map[String, PullMap] = settings.mipiRequests.map(mipi => (mipi.dataItem, mipi)).toMap
   var ifrErrorCounter = 0
   val ifrMaxErrors = 100
+  var backoff = new ExponetialBackOff(settings.refreshRate, settings.maxBackOff)
 
   /**
     * Build a map of table to offset.
@@ -83,9 +83,14 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     *
     * */
   def process() : List[SourceRecord] = {
-    val ifd = Try(processIFD()) match {
-      case Success(s) => s
+    val ifd = if (backoff.passed) {
+      logger.info("Backoff passed, asking National grid for last publication time.")
+      Try(processIFD()) match {
+      case Success(s) =>
+        backoff = backoff.nextSuccess
+        s
       case Failure(f) =>
+        backoff = backoff.nextFailure()
         logger.error(s"Error trying to retrieve IFR data. ${f.getMessage}")
         ifrErrorCounter += 1
         if (ifrErrorCounter.equals(ifrMaxErrors)) {
@@ -93,14 +98,17 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
         } else {
           Seq.empty[SourceRecord]
         }
+      }
+    } else {
+      Thread.sleep(1000)
+      List.empty[SourceRecord]
     }
 
-    val mipi = settings
-                  .mipiRequests
-                  .filter(req => pull(req.dataItem))
-                  .flatMap(req => buildCLSRequest(req.dataItem))
-                  .flatMap(processMIPI)
-    (ifd ++ mipi).toList
+    (ifd ++ settings
+      .mipiRequests
+      .filter(req => pull(req.dataItem))
+      .flatMap(req => buildCLSRequest(req.dataItem))
+      .flatMap(processMIPI)).toList
   }
 
   /**
@@ -197,8 +205,6 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     * Call the service and convert to source records
     * */
   def processIFD(): Seq[SourceRecord] = {
-    sleeper()
-
     import duration._
     val lastPubTime =  Await.result(ifService.getLatestPublicationTime(), Duration(30, SECONDS)).toGregorianCalendar
     val next = if (ifrPubTracker.isDefined) {
@@ -238,11 +244,5 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
       ifrPubTracker = Some(lastPubTime)
       Seq.empty[SourceRecord]
     }
-  }
-
-
-  def sleeper() = {
-    logger.info(s"Sleeping for ${TimeUnit.MILLISECONDS.toMinutes(settings.pollInterval)} minutes to not kill National Grid API")
-    Thread.sleep(settings.pollInterval)
   }
 }
