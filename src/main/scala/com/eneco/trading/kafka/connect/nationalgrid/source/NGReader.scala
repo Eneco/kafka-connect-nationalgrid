@@ -239,8 +239,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
             r)
         })
     } else {
-      logger.debug(s"Last IFR publication time is ${lastPubTime.getTime.toString}, " +
-        s"last pulled at ${next.getTime}. Not pulling data.")
+      logger.info(s"Last IFR publication time is ${lastPubTime.getTime.toString}, last pulled at ${next.getTime}. Not pulling data.")
       ifrPubTracker = Some(lastPubTime)
       Seq.empty[SourceRecord]
     }
