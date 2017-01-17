@@ -100,7 +100,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
         }
       }
     } else {
-      Thread.sleep(1000)
+      logger.info(s"Backoff not passed, ${backoff.remaining.toString} remaining.")
       List.empty[SourceRecord]
     }
 
