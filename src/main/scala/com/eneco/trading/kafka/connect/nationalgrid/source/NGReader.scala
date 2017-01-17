@@ -100,7 +100,6 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
         }
       }
     } else {
-      logger.info(s"Backoff not passed, ${backoff.remaining.toString} remaining.")
       List.empty[SourceRecord]
     }
 
@@ -217,7 +216,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     }
 
     if (lastPubTime.after(next) || lastPubTime.equals(next)) {
-      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication. Pulling data.")
+      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication ${lastPubTime.getTime}. Pulling data.")
       val ifd = Await.result(ifService.getInstantaneousFlowData(), Duration(60, SECONDS))
       val reports = ifd.GetInstantaneousFlowDataResult.getOrElse(None)
 
@@ -240,8 +239,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
             r)
         })
     } else {
-      logger.debug(s"Last IFR publication time is ${lastPubTime.getTime.toString}, " +
-        s"last pulled at ${next.getTime}. Not pulling data.")
+      logger.info(s"Last IFR publication time is ${lastPubTime.getTime.toString}, last pulled at ${next.getTime}. Not pulling data.")
       ifrPubTracker = Some(lastPubTime)
       Seq.empty[SourceRecord]
     }
