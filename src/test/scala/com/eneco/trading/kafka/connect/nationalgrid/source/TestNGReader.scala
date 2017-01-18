@@ -12,10 +12,6 @@ import org.joda.time.DateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
 
-/**
-  * Created by andrew@datamountaineer.com on 08/07/16. 
-  * stream-reactor
-  */
 class TestNGReader extends WordSpec with Matchers with BeforeAndAfter with MockitoSugar with TestConfig with IFDRMessage {
 
   val sourceContext = getSourceTaskContext(pullMap.dataItem, pullMap.dataItem, NGSourceConfig.OFFSET_FIELD, OFFSET_DEFAULT)

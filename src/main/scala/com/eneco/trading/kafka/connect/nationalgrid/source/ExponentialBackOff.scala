@@ -2,10 +2,6 @@ package com.eneco.trading.kafka.connect.nationalgrid.source
 
 import java.time.{Duration, Instant}
 
-/**
-  * Created by andrew@datamountaineer.com on 17/01/2017. 
-  * kafka-connect-nationalgrid
-  */
 class ExponentialBackOff(step: Duration, cap: Duration, iteration: Int = 0) {
   val endTime = Instant.now.plus(interval(iteration))
 

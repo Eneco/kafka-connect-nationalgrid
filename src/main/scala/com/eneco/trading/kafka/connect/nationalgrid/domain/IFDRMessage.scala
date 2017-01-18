@@ -5,10 +5,6 @@ import nationalgrid.{EDPEnergyGraphTableBE, EDPObjectBE, EDPReportBE}
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 
 import scala.collection.JavaConverters._
-/**
-  * Created by andrew@datamountaineer.com on 13/07/16.
-  * kafka-connect-nationalgrid
-  */
 
 trait IFDRMessage extends StrictLogging
 {

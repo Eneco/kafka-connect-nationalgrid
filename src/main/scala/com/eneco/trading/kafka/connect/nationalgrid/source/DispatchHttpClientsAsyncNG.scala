@@ -4,10 +4,6 @@ import scala.concurrent.duration.Duration
 import scala.concurrent._, duration._
 import scalaxb.HttpClientsAsync
 
-/**
-  * Created by andrew@datamountaineer.com on 13/07/16. 
-  * kafka-connect-nationalgrid
-  */
 trait DispatchHttpClientsAsyncNG extends HttpClientsAsync {
 
   lazy val httpClient = new DispatchHttpClient {}

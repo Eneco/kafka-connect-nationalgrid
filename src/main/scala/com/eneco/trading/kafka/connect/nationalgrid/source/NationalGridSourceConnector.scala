@@ -9,10 +9,6 @@ import org.apache.kafka.connect.source.SourceConnector
 
 import scala.collection.JavaConversions._
 
-/**
-  * Created by andrew@datamountaineer.com on 13/12/2016. 
-  * kafka-connect-nationalgrid
-  */
 class NationalGridSourceConnector extends SourceConnector {
   private var configProps: util.Map[String, String] = _
   private val configDef = NGSourceConfig.config

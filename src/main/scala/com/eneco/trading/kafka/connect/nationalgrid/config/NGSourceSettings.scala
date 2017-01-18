@@ -7,11 +7,6 @@ import com.eneco.trading.kafka.connect.nationalgrid.domain.PullMap
 
 import scala.collection.JavaConverters._
 
-/**
-  * Created by andrew@datamountaineer.com on 08/07/16. 
-  * stream-reactor
-  */
-
 case class NGSourceSettings(ifrTopic: String, mipiRequests: Set[PullMap], mipiTopic: String, refreshRate: Duration, maxBackOff: Duration)
 
 object NGSourceSettings {

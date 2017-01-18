@@ -5,10 +5,6 @@ import javax.xml.datatype.XMLGregorianCalendar
 import nationalgrid.{ArrayOfCLSMIPIPublicationObjectBE, ArrayOfCLSPublicationObjectDataBE, CLSPublicationObjectDataBE}
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 
-/**
-  * Created by andrew@datamountaineer.com on 13/07/16. 
-  * kafka-connect-nationalgrid
-  */
 trait MIPIMessage {
   val CLSPublicationObjectDataBESchema: SchemaBuilder = SchemaBuilder.struct().name("CLSPublicationObjectDataBE").version(1)
     .field("dataItemName", Schema.STRING_SCHEMA)

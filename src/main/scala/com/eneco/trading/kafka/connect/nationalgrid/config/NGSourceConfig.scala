@@ -5,10 +5,6 @@ import java.util
 import org.apache.kafka.common.config.ConfigDef.{Importance, Type}
 import org.apache.kafka.common.config.{AbstractConfig, ConfigDef}
 
-/**
-  * Created by andrew@datamountaineer.com on 08/07/16. 
-  * stream-reactor
-  */
 case class NGSourceConfig(props: util.Map[String, String])
   extends AbstractConfig(NGSourceConfig.config, props)
 

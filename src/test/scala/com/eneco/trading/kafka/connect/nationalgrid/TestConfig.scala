@@ -22,10 +22,6 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-/**
-  * Created by andrew@datamountaineer.com on 14/04/16.
-  * stream-reactor
-  */
 trait TestConfig extends StrictLogging with MockitoSugar {
   val TOPIC1 = "sink_test"
   val TOPIC2 = "sink_test2"

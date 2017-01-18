@@ -19,12 +19,6 @@ import org.joda.time.Days
 
 import scala.util.{Failure, Success, Try}
 
-
-
-/**
-  * Created by andrew@datamountaineer.com on 08/07/16. 
-  * stream-reactor
-  */
 object NGReader {
   def apply(settings: NGSourceSettings, context: SourceTaskContext): NGReader = new NGReader(settings, context)
 }

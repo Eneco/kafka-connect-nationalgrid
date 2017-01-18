@@ -11,10 +11,6 @@ import org.apache.kafka.connect.source.{SourceRecord, SourceTask}
 import scala.collection.mutable
 import scala.collection.JavaConversions._
 
-/**
-  * Created by andrew@datamountaineer.com on 13/12/2016. 
-  * kafka-connect-nationalgrid
-  */
 class NationalGridSourceTask extends SourceTask with StrictLogging {
   private val timer = new Timer()
   private val counter = mutable.Map.empty[String, Long]
