@@ -72,20 +72,29 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     }).toMap
   }
 
-  /**
+    /**
     * Process and new NG feeds that are available
     *
     * */
   def process() : List[SourceRecord] = {
-    val ifd = if (backoff.passed) {
-      logger.info("Backoff passed, asking National grid for last publication time.")
+    Thread.sleep(5000)
+
+    if (!backoff.passed) {
+      return List[SourceRecord]()
+    }
+
+    logger.info("Backoff passed, asking National grid for last publication time.")
+
+    val ifd =
       Try(processIFD()) match {
       case Success(s) =>
         backoff = backoff.nextSuccess
+        logger.info(s"Next poll will be around ${backoff.endTime}")
         s
       case Failure(f) =>
         backoff = backoff.nextFailure()
         logger.error(s"Error trying to retrieve IFR data. ${f.getMessage}")
+        logger.info(s"Backing off. Next poll will be around ${backoff.endTime}")
         ifrErrorCounter += 1
         if (ifrErrorCounter.equals(ifrMaxErrors)) {
           throw new ConnectException(s"Error trying to retrieve IFR data. ${f.getMessage}")
@@ -93,9 +102,6 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
           Seq.empty[SourceRecord]
         }
       }
-    } else {
-      List.empty[SourceRecord]
-    }
 
     (ifd ++ settings
       .mipiRequests

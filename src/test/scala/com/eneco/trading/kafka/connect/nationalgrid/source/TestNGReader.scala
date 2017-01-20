@@ -1,5 +1,6 @@
 package com.eneco.trading.kafka.connect.nationalgrid.source
 
+import java.time.Duration
 import java.util
 import java.util.{Calendar, GregorianCalendar}
 
@@ -50,6 +51,7 @@ class TestNGReader extends WordSpec with Matchers with BeforeAndAfter with Mocki
     val settings = NGSourceSettings(config)
     val reader = NGReader(settings, sourceContext)
     reader.offsetMap(pullMap.dataItem) -> DATE_FORMATTER.parseDateTime(OFFSET_DEFAULT)
+    reader.backoff = new ExponentialBackOff(Duration.ZERO, Duration.ZERO)
     val records = reader.process()
     records.size should be > 0
     val records2 = reader.process()
