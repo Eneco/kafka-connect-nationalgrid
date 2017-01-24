@@ -30,7 +30,7 @@ object NGSourceConfig {
   val MIPI_REQUESTS_DOC = "Pipe separated list or request supported at MIPI"
 
   val MAX_BACK_OFF = "connect.nationalgrid.max.backoff"
-  val MAX_BACK_OFF_DEFAULT = "PT30M"
+  val MAX_BACK_OFF_DEFAULT = "PT40M"
   val MAX_BACK_OFF_DOC = "On failure, exponentially backoff to at most this ISO8601 duration"
 
   val REFRESH_RATE = "connect.nationalgrid.refresh"
