@@ -1,15 +1,14 @@
 package com.eneco.trading.kafka.connect.nationalgrid.source
 
 import java.util
-import java.util.concurrent.TimeUnit
 import java.util.{Timer, TimerTask}
 
 import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceSettings}
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.kafka.connect.source.{SourceRecord, SourceTask}
 
-import scala.collection.mutable
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 class NationalGridSourceTask extends SourceTask with StrictLogging {
   private val timer = new Timer()

@@ -1,14 +1,11 @@
 package com.eneco.trading.kafka.connect.nationalgrid.source
 
 import java.time.Duration
-import java.util
 import java.util.{Calendar, GregorianCalendar}
 
 import com.eneco.trading.kafka.connect.nationalgrid.TestConfig
 import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSourceSettings}
 import com.eneco.trading.kafka.connect.nationalgrid.domain.IFDRMessage
-import org.apache.kafka.connect.data.Field
-import org.apache.kafka.connect.source.SourceTaskContext
 import org.joda.time.DateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
