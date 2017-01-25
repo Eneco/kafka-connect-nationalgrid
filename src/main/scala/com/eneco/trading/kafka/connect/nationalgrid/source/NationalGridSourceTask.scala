@@ -7,13 +7,9 @@ import com.eneco.trading.kafka.connect.nationalgrid.config.{NGSourceConfig, NGSo
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.kafka.connect.source.{SourceRecord, SourceTask}
 
-import scala.collection.mutable
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
-/**
-  * Created by andrew@datamountaineer.com on 13/12/2016. 
-  * kafka-connect-nationalgrid
-  */
 class NationalGridSourceTask extends SourceTask with StrictLogging {
   private val timer = new Timer()
   private val counter = mutable.Map.empty[String, Long]
@@ -36,6 +32,7 @@ class NationalGridSourceTask extends SourceTask with StrictLogging {
   override def poll(): util.List[SourceRecord] = {
     reader.process()
   }
+
 
   override def version(): String = "1"
 

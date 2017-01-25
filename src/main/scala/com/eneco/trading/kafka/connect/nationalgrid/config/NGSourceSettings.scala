@@ -1,16 +1,13 @@
 package com.eneco.trading.kafka.connect.nationalgrid.config
 
 
+import java.time.Duration
+
 import com.eneco.trading.kafka.connect.nationalgrid.domain.PullMap
 
 import scala.collection.JavaConverters._
 
-/**
-  * Created by andrew@datamountaineer.com on 08/07/16. 
-  * stream-reactor
-  */
-
-case class NGSourceSettings(ifrTopic: String, mipiRequests: Set[PullMap], mipiTopic: String)
+case class NGSourceSettings(ifrTopic: String, mipiRequests: Set[PullMap], mipiTopic: String, refreshRate: Duration, maxBackOff: Duration)
 
 object NGSourceSettings {
   def apply(config: NGSourceConfig): NGSourceSettings = {
@@ -24,6 +21,9 @@ object NGSourceSettings {
                           val hourMin = m(1).split(":")
                           PullMap(m(0), hourMin(0).toInt, hourMin(1).toInt, m(2).toInt)
                         }).toSet
-    NGSourceSettings(ifrTopic, mipiRequests, mipiTopic)
+
+    val refresh = Duration.parse(config.getString(NGSourceConfig.REFRESH_RATE))
+    val backOff = Duration.parse(config.getString(NGSourceConfig.MAX_BACK_OFF))
+    NGSourceSettings(ifrTopic, mipiRequests, mipiTopic, refresh, backOff)
   }
 }

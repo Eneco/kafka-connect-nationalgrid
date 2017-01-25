@@ -22,10 +22,6 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-/**
-  * Created by andrew@datamountaineer.com on 14/04/16.
-  * stream-reactor
-  */
 trait TestConfig extends StrictLogging with MockitoSugar {
   val TOPIC1 = "sink_test"
   val TOPIC2 = "sink_test2"
@@ -58,10 +54,11 @@ trait TestConfig extends StrictLogging with MockitoSugar {
     ASSIGNMENT
   }
 
-  def getProps: util.Map[String, String] = Map(
+  def getProps = Map(
     NGSourceConfig.IFR_TOPIC->IFR_TOPIC,
     NGSourceConfig.MIPI_TOPIC->MIPI_TOPIC,
-    NGSourceConfig.MIPI_REQUESTS->MIPI_REQUEST).asJava
+    NGSourceConfig.MIPI_REQUESTS->MIPI_REQUEST
+  ).asJava
 
   //build a test record schema
   def createSchema: Schema = {

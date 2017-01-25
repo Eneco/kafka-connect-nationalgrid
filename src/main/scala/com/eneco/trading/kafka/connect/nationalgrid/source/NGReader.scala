@@ -19,12 +19,6 @@ import org.joda.time.Days
 
 import scala.util.{Failure, Success, Try}
 
-
-
-/**
-  * Created by andrew@datamountaineer.com on 08/07/16. 
-  * stream-reactor
-  */
 object NGReader {
   def apply(settings: NGSourceSettings, context: SourceTaskContext): NGReader = new NGReader(settings, context)
 }
@@ -50,6 +44,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
   val frequencies: Map[String, PullMap] = settings.mipiRequests.map(mipi => (mipi.dataItem, mipi)).toMap
   var ifrErrorCounter = 0
   val ifrMaxErrors = 100
+  var backoff = new ExponentialBackOff(settings.refreshRate, settings.maxBackOff)
 
   /**
     * Build a map of table to offset.
@@ -77,29 +72,42 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     }).toMap
   }
 
-  /**
+    /**
     * Process and new NG feeds that are available
     *
     * */
   def process() : List[SourceRecord] = {
-    val ifd = Try(processIFD()) match {
-      case Success(s) => s
+    Thread.sleep(5000)
+
+    if (!backoff.passed) {
+      return List[SourceRecord]()
+    }
+
+    logger.info("Backoff passed, asking National grid for last publication time.")
+
+    val ifd =
+      Try(processIFD()) match {
+      case Success(s) =>
+        backoff = backoff.nextSuccess
+        logger.info(s"Next poll will be around ${backoff.endTime}")
+        s
       case Failure(f) =>
+        backoff = backoff.nextFailure()
         logger.error(s"Error trying to retrieve IFR data. ${f.getMessage}")
+        logger.info(s"Backing off. Next poll will be around ${backoff.endTime}")
         ifrErrorCounter += 1
         if (ifrErrorCounter.equals(ifrMaxErrors)) {
           throw new ConnectException(s"Error trying to retrieve IFR data. ${f.getMessage}")
         } else {
           Seq.empty[SourceRecord]
         }
-    }
+      }
 
-    val mipi = settings
-                  .mipiRequests
-                  .filter(req => pull(req.dataItem))
-                  .flatMap(req => buildCLSRequest(req.dataItem))
-                  .flatMap(processMIPI)
-    (ifd ++ mipi).toList
+    (ifd ++ settings
+      .mipiRequests
+      .filter(req => pull(req.dataItem))
+      .flatMap(req => buildCLSRequest(req.dataItem))
+      .flatMap(processMIPI)).toList
   }
 
   /**
@@ -196,8 +204,8 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     * Call the service and convert to source records
     * */
   def processIFD(): Seq[SourceRecord] = {
-
     import duration._
+    logger.info("Getting last publication time for IFR")
     val lastPubTime =  Await.result(ifService.getLatestPublicationTime(), Duration(30, SECONDS)).toGregorianCalendar
     val next = if (ifrPubTracker.isDefined) {
       val tracker = ifrPubTracker.get
@@ -208,7 +216,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     }
 
     if (lastPubTime.after(next) || lastPubTime.equals(next)) {
-      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication. Pulling data.")
+      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication ${lastPubTime.getTime}. Pulling data.")
       val ifd = Await.result(ifService.getInstantaneousFlowData(), Duration(60, SECONDS))
       val reports = ifd.GetInstantaneousFlowDataResult.getOrElse(None)
 
@@ -231,8 +239,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
             r)
         })
     } else {
-      logger.debug(s"Last IFR publication time is ${lastPubTime.getTime.toString}, " +
-        s"last pulled at ${next.getTime}. Not pulling data.")
+      logger.info(s"Last IFR publication time is ${lastPubTime.getTime.toString}, last pulled at ${next.getTime}. Not pulling data.")
       ifrPubTracker = Some(lastPubTime)
       Seq.empty[SourceRecord]
     }

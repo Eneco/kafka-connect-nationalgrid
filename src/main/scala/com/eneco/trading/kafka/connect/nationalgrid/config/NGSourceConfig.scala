@@ -5,10 +5,6 @@ import java.util
 import org.apache.kafka.common.config.ConfigDef.{Importance, Type}
 import org.apache.kafka.common.config.{AbstractConfig, ConfigDef}
 
-/**
-  * Created by andrew@datamountaineer.com on 08/07/16. 
-  * stream-reactor
-  */
 case class NGSourceConfig(props: util.Map[String, String])
   extends AbstractConfig(NGSourceConfig.config, props)
 
@@ -33,8 +29,18 @@ object NGSourceConfig {
   val MIPI_REQUESTS = "connect.nationalgrid.mipi.requests"
   val MIPI_REQUESTS_DOC = "Pipe separated list or request supported at MIPI"
 
+  val MAX_BACK_OFF = "connect.nationalgrid.max.backoff"
+  val MAX_BACK_OFF_DEFAULT = "PT40M"
+  val MAX_BACK_OFF_DOC = "On failure, exponentially backoff to at most this ISO8601 duration"
+
+  val REFRESH_RATE = "connect.nationalgrid.refresh"
+  val REFRESH_RATE_DEFAULT = "PT5M"
+  val REFRESH_RATE_DOC = "How often the ftp server is polled; ISO8601 duration"
+
   val config: ConfigDef = new ConfigDef()
       .define(IFR_TOPIC, Type.STRING, IFR_TOPIC_DEFAULT, Importance.HIGH, IFR_TOPIC_DOC)
       .define(MIPI_REQUESTS, Type.STRING, Importance.HIGH, MIPI_REQUESTS_DOC)
       .define(MIPI_TOPIC, Type.STRING, MIPI_TOPIC_DEFAULT, Importance.HIGH, MIPI_TOPIC_DOC)
+      .define(MAX_BACK_OFF, Type.STRING, MAX_BACK_OFF_DEFAULT , Importance.HIGH, MAX_BACK_OFF_DOC)
+      .define(REFRESH_RATE, Type.STRING, REFRESH_RATE_DEFAULT , Importance.HIGH, REFRESH_RATE_DOC)
 }
