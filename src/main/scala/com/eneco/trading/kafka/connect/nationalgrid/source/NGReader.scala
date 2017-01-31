@@ -190,7 +190,13 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
                     .withMillisOfSecond(0)
                     .plusMinutes(frequencies(dataItem).frequency)
 
-    offsetMap(dataItem) = marker
+    //if we are not after the marker when adding the frequency
+    //set the next marker as now plus frequency. A bit hacky and not clean.
+    if (marker.isAfterNow) {
+      offsetMap(dataItem) = marker
+    } else {
+      offsetMap(dataItem) = DateTime.now.plusMinutes(frequencies(dataItem).frequency)
+    }
 
     if (records.isEmpty) logger.warn(s"No data retrieved for dataItem $dataItem.")
 
