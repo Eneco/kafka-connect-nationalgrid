@@ -180,18 +180,30 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
       Seq.empty[Struct]
     case report : ArrayOfCLSMIPIPublicationObjectBE => processMIPIReport(report)
     }
-    val dataItem = request.PublicationObjectNameList.get.string.map(m=>m.get).mkString
+    val dataItem = request.PublicationObjectNameList.get.string.map(m => m.get).mkString
 
     //set the offset as now plus frequency
-    val newMarker = DateTime.now.plusMinutes(frequencies(dataItem).frequency)
-    offsetMap(dataItem) = newMarker
+    val marker = new DateTime()
+                    .withHourOfDay(frequencies(dataItem).pubHour)
+                    .withMinuteOfHour(frequencies(dataItem).pubMin)
+                    .withSecondOfMinute(0)
+                    .withMillisOfSecond(0)
+                    .plusMinutes(frequencies(dataItem).frequency)
+
+    //if we are not after the marker when adding the frequency
+    //set the next marker as now plus frequency. A bit hacky and not clean.
+    if (marker.isAfterNow) {
+      offsetMap(dataItem) = marker
+    } else {
+      offsetMap(dataItem) = DateTime.now.plusMinutes(frequencies(dataItem).frequency)
+    }
 
     if (records.isEmpty) logger.warn(s"No data retrieved for dataItem $dataItem.")
 
     records.map(r => {
       new SourceRecord(
         Map(dataItem -> dataItem),
-        Map(NGSourceConfig.OFFSET_FIELD -> newMarker.toDateTime.toString()),
+        Map(NGSourceConfig.OFFSET_FIELD -> marker.toDateTime.toString()),
         mipiTopic,
         r.schema(),
         r)
@@ -216,7 +228,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     }
 
     if (lastPubTime.after(next) || lastPubTime.equals(next)) {
-      logger.info(s"Poll time ${next.getTime} is later than or equal to the last IFR Publication ${lastPubTime.getTime}. Pulling data.")
+      logger.info(s"Poll time ${next.getTime} is less than or equal to the last IFR Publication ${lastPubTime.getTime}. Pulling data.")
       val ifd = Await.result(ifService.getInstantaneousFlowData(), Duration(60, SECONDS))
       val reports = ifd.GetInstantaneousFlowDataResult.getOrElse(None)
 
