@@ -187,7 +187,9 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
                     .withHourOfDay(frequencies(dataItem).pubHour)
                     .withMinuteOfHour(frequencies(dataItem).pubMin)
                     .withSecondOfMinute(0)
+                    .withMillisOfSecond(0)
                     .plusMinutes(frequencies(dataItem).frequency)
+
     offsetMap(dataItem) = marker
 
     if (records.isEmpty) logger.warn(s"No data retrieved for dataItem $dataItem.")
