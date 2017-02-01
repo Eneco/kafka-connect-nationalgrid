@@ -203,7 +203,7 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     records.map(r => {
       new SourceRecord(
         Map(dataItem -> dataItem),
-        Map(NGSourceConfig.OFFSET_FIELD -> marker.toDateTime.toString()),
+        Map(NGSourceConfig.OFFSET_FIELD -> DateTime.now.toDateTime.toString()),
         mipiTopic,
         r.schema(),
         r)
