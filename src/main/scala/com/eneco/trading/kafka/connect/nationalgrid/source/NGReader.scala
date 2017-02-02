@@ -123,8 +123,8 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     val frequency = frequencies(dataItem)
     val pubTime = new DateTime().withTime(frequency.pubHour, frequency.pubMin, 0, 0)
 
-    if (now.isAfter(marker) && now.isAfter(pubTime) && marker.isBefore(pubTime)) {
-      logger.debug(s"Pulling data from $dataItem. Last marker was ${marker.toDateTime.toString()}.")
+    if (now.isAfter(marker) && now.isAfter(pubTime)) {
+      logger.info(s"Pulling data from $dataItem. Last marker was ${marker.toDateTime.toString()}.")
       true
     } else {
       logger.debug(s"Not pulling data from $dataItem. Last marker was ${marker.toDateTime.toString()}.")
@@ -139,10 +139,11 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     * @return A CLS for the gas day and data item
     * */
   def buildCLSRequest(dataItem: String) : List[CLSRequestObject] = {
+    println(dataItem)
     val marker = offsetMap(dataItem)
     val now = DateTime.now
     val diff = Days.daysBetween(marker, now).getDays
-    val dayDiff = if (diff >= 30) 30 else diff
+    val dayDiff = if (diff >= settings.historicFetch) settings.historicFetch else diff
 
     val days = List.range(0, dayDiff).reverse
     days.map( x =>
@@ -152,12 +153,14 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
       gasDay.setMinute(0)
       gasDay.setSecond(0)
       gasDay.setMillisecond(0)
-      CLSRequestObject(LatestFlag = Some("Y"),
+      val req = CLSRequestObject(LatestFlag = Some("Y"),
         ApplicableForFlag = Some("N"),
         FromDate = gasDay,
         ToDate = gasDay,
         DateType = Some("GASDAY"),
         PublicationObjectNameList = Some(ArrayOfString(Some(dataItem))))
+      println(req)
+      req
     })
   }
 
@@ -182,12 +185,9 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
     }
     val dataItem = request.PublicationObjectNameList.get.string.map(m => m.get).mkString
 
-    //set the offset as now plus frequency
+    //set the new offset as now plus frequency
     val marker = new DateTime()
-                    .withHourOfDay(frequencies(dataItem).pubHour)
-                    .withMinuteOfHour(frequencies(dataItem).pubMin)
-                    .withSecondOfMinute(0)
-                    .withMillisOfSecond(0)
+                    .withTime(frequencies(dataItem).pubHour, frequencies(dataItem).pubMin,0,0)
                     .plusMinutes(frequencies(dataItem).frequency)
 
     //if we are not after the marker when adding the frequency
@@ -198,12 +198,14 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
       offsetMap(dataItem) = DateTime.now.plusMinutes(frequencies(dataItem).frequency)
     }
 
+    logger.info(s"Setting next marker for data item $dataItem to ${marker.toDateTime.toString()}")
+
     if (records.isEmpty) logger.warn(s"No data retrieved for dataItem $dataItem.")
 
     records.map(r => {
       new SourceRecord(
         Map(dataItem -> dataItem),
-        Map(NGSourceConfig.OFFSET_FIELD -> DateTime.now.toDateTime.toString()),
+        Map(NGSourceConfig.OFFSET_FIELD -> offsetMap(dataItem).toDateTime.toString()),
         mipiTopic,
         r.schema(),
         r)

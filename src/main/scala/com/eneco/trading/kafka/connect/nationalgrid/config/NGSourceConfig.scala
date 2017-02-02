@@ -37,10 +37,15 @@ object NGSourceConfig {
   val REFRESH_RATE_DEFAULT = "PT5M"
   val REFRESH_RATE_DOC = "How often the ftp server is polled; ISO8601 duration"
 
+  val HISTORIC_FETCH = "connect.nationalgrid.historic.fetch"
+  val HISTORIC_FETCH_DEFAULT = 1
+  val HISTORIC_FETCH_DOC = "The number of historical days to fetch on start with no offsets from the current day."
+
   val config: ConfigDef = new ConfigDef()
       .define(IFR_TOPIC, Type.STRING, IFR_TOPIC_DEFAULT, Importance.HIGH, IFR_TOPIC_DOC)
       .define(MIPI_REQUESTS, Type.STRING, Importance.HIGH, MIPI_REQUESTS_DOC)
       .define(MIPI_TOPIC, Type.STRING, MIPI_TOPIC_DEFAULT, Importance.HIGH, MIPI_TOPIC_DOC)
       .define(MAX_BACK_OFF, Type.STRING, MAX_BACK_OFF_DEFAULT , Importance.HIGH, MAX_BACK_OFF_DOC)
       .define(REFRESH_RATE, Type.STRING, REFRESH_RATE_DEFAULT , Importance.HIGH, REFRESH_RATE_DOC)
+      .define(HISTORIC_FETCH, Type.INT, HISTORIC_FETCH_DEFAULT , Importance.LOW, HISTORIC_FETCH_DOC)
 }

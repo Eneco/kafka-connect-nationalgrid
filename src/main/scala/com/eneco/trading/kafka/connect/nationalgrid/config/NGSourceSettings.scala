@@ -7,7 +7,8 @@ import com.eneco.trading.kafka.connect.nationalgrid.domain.PullMap
 
 import scala.collection.JavaConverters._
 
-case class NGSourceSettings(ifrTopic: String, mipiRequests: Set[PullMap], mipiTopic: String, refreshRate: Duration, maxBackOff: Duration)
+case class NGSourceSettings(ifrTopic: String, mipiRequests: Set[PullMap], mipiTopic: String, refreshRate: Duration,
+maxBackOff: Duration, historicFetch: Int)
 
 object NGSourceSettings {
   def apply(config: NGSourceConfig): NGSourceSettings = {
@@ -24,6 +25,7 @@ object NGSourceSettings {
 
     val refresh = Duration.parse(config.getString(NGSourceConfig.REFRESH_RATE))
     val backOff = Duration.parse(config.getString(NGSourceConfig.MAX_BACK_OFF))
-    NGSourceSettings(ifrTopic, mipiRequests, mipiTopic, refresh, backOff)
+    val historic = config.getInt(NGSourceConfig.HISTORIC_FETCH)
+    NGSourceSettings(ifrTopic, mipiRequests, mipiTopic, refresh, backOff, historic)
   }
 }
