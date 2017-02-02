@@ -159,7 +159,6 @@ class NGReader(settings: NGSourceSettings, context : SourceTaskContext) extends 
         ToDate = gasDay,
         DateType = Some("GASDAY"),
         PublicationObjectNameList = Some(ArrayOfString(Some(dataItem))))
-      println(req)
       req
     })
   }
